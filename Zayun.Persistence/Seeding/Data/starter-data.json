@@ -1,0 +1,514 @@
+{
+  "$comment": "Starter content for an empty database: exactly what zayun.net showed before the API. Each block is only used while its table is empty (deleted rows count), so admin changes are never brought back by a restart. Pictures are in images/, paths relative to it.",
+  "projects": [
+    {
+      "title": "GuidelineIQ™",
+      "slug": "guidelineiq",
+      "subtitle": "AI Clinical Decision Support",
+      "category": "Featured",
+      "label": "AI Innovation",
+      "description": "An AI-driven clinical decision support project exploring evidence-grounded intelligence and semantic retrieval for healthcare decision-making.",
+      "tags": [
+        "Artificial Intelligence",
+        "Semantic Retrieval",
+        "Healthcare AI",
+        "Clinical Decision Support"
+      ],
+      "isPrivateRepo": true,
+      "images": []
+    },
+    {
+      "title": "CDx Development Tool",
+      "slug": "cdx-development-tool",
+      "subtitle": "Scientific Software Modernisation",
+      "category": "Featured",
+      "label": "Brunel University London",
+      "description": "Modernisation of a legacy MATLAB-based scientific application into Python, including conversion of computational logic and visualisations and development of a Django-based API to support distributed access.",
+      "tags": [
+        "Python",
+        "Django",
+        "PyCharm",
+        "API Development",
+        "Data Visualisation",
+        "MATLAB Migration"
+      ],
+      "isPrivateRepo": true,
+      "images": [
+        {
+          "file": "projects/cdx-development-tool.webp",
+          "altText": "CDx Development Tool showing scientific modelling and data visualisations",
+          "kind": "Primary"
+        }
+      ]
+    },
+    {
+      "title": "RCCG Hope House",
+      "slug": "rccg-hope-house",
+      "subtitle": "Full-Stack Digital Platform",
+      "category": "Featured",
+      "label": "Full-Stack Engineering",
+      "visualLabel": "Full-Stack Platform",
+      "description": "A production full-stack digital platform comprising a public-facing React website, a dedicated administrative application and an ASP.NET Core REST API backend. The platform supports ministries, events, devotionals, sermons, galleries, annual content, prayer and contact workflows, with CQRS/MediatR architecture, EF Core persistence and automated CI/CD deployment.",
+      "tags": [
+        "React",
+        "TypeScript",
+        "ASP.NET Core",
+        "C#",
+        "REST API",
+        "CQRS",
+        "MediatR",
+        "EF Core",
+        "Admin Portal",
+        "CI/CD"
+      ],
+      "githubUrl": "https://github.com/adahadapato/rccg-hope-house-web-api/",
+      "liveUrl": "https://rccghopehouse.org.uk/",
+      "isPrivateRepo": false,
+      "images": [
+        {
+          "file": "projects/rccg-hope-house.webp",
+          "altText": "RCCG Hope House public-facing website",
+          "label": "Public Website",
+          "kind": "Primary"
+        },
+        {
+          "file": "projects/rccg-hope-house-admin.webp",
+          "altText": "RCCG Hope House administration dashboard for managing website content and services",
+          "label": "Admin Platform",
+          "kind": "Secondary"
+        }
+      ]
+    },
+    {
+      "title": "Phloem",
+      "slug": "phloem",
+      "subtitle": "Full-Stack Cross-Platform Mobile Platform",
+      "category": "Featured",
+      "label": "Client Mobile Application",
+      "visualLabel": "Mobile application",
+      "description": "A full-stack cross-platform marketplace developed for a client, connecting African food sellers with local and diaspora customers. Built with .NET MAUI and C#, with an ASP.NET Core REST API powering the backend, the platform integrates food discovery, seller onboarding and commerce, cross-border delivery, order management and administrative operations within a unified system.",
+      "tags": [
+        ".NET MAUI",
+        "C#",
+        "ASP.NET Core",
+        "REST API",
+        "Full-Stack Development",
+        "Marketplace",
+        "Seller Management",
+        "Logistics"
+      ],
+      "isPrivateRepo": true,
+      "images": [
+        {
+          "file": "projects/phloem-marketplace.webp",
+          "altText": "Phloem mobile marketplace home screen showing food discovery and popular dishes",
+          "label": "Marketplace",
+          "kind": "Gallery"
+        },
+        {
+          "file": "projects/phloem-platform-overview.webp",
+          "altText": "Phloem platform overview describing its African food marketplace and diaspora delivery mission",
+          "label": "Platform",
+          "kind": "Gallery"
+        },
+        {
+          "file": "projects/phloem-cross-border-delivery.webp",
+          "altText": "Phloem cross-border delivery workflow for sending African food to the United Kingdom",
+          "label": "Delivery",
+          "kind": "Gallery"
+        },
+        {
+          "file": "projects/phloem-seller-dashboard.webp",
+          "altText": "Phloem seller dashboard showing orders, balance and product sales management",
+          "label": "Seller",
+          "kind": "Gallery"
+        },
+        {
+          "file": "projects/phloem-admin-dashboard.webp",
+          "altText": "Phloem admin dashboard showing seller approval and management controls",
+          "label": "Admin",
+          "kind": "Gallery"
+        }
+      ]
+    },
+    {
+      "title": "Med-CTX",
+      "slug": "med-ctx",
+      "subtitle": "Explainable Multimodal Medical AI",
+      "category": "Featured",
+      "label": "AI Research",
+      "visualLabel": "Research Output",
+      "description": "A transformer-based multimodal AI framework combining breast ultrasound imaging with radiology reports for explainable breast cancer image segmentation and clinically interpretable model outputs.",
+      "tags": [
+        "Multimodal AI",
+        "Transformers",
+        "Computer Vision",
+        "Medical Imaging",
+        "Explainable AI"
+      ],
+      "githubUrl": "https://github.com/adahadapato/med-ctx",
+      "isPrivateRepo": false,
+      "images": [
+        {
+          "file": "research/med-ctx-input.webp",
+          "altText": "Med-CTX clinical context input containing imaging and pathology information",
+          "label": "Clinical Context",
+          "kind": "Primary"
+        },
+        {
+          "file": "research/med-ctx-output.webp",
+          "altText": "Med-CTX AI-generated clinical explanation showing assessment confidence and decision guidance",
+          "label": "AI Explanation",
+          "kind": "Secondary"
+        }
+      ]
+    },
+    {
+      "title": "NECO Examination Data Processing",
+      "slug": "neco-examination-data-processing",
+      "subtitle": "OMR Scanning & Monitoring",
+      "category": "Engineering",
+      "label": "Enterprise Systems",
+      "description": "A real-time examination data capture and monitoring solution supporting OMR data capture workflows, operator access, examination filtering, progress monitoring and identification of missing records.",
+      "tags": [
+        "C#",
+        ".NET",
+        "OMR",
+        "Data Processing",
+        "Real-Time Monitoring",
+        "Examination Management Systems"
+      ],
+      "isPrivateRepo": true,
+      "images": [
+        {
+          "file": "projects/neco-omr-system.webp",
+          "altText": "Examination OMR data capture and monitoring application",
+          "kind": "Primary"
+        }
+      ]
+    },
+    {
+      "title": "Multimodal Biometric Identity System",
+      "slug": "multimodal-biometric-identity-system",
+      "subtitle": "Fingerprint & Facial Identity Verification",
+      "category": "Engineering",
+      "label": "Identity Technology",
+      "description": "A multimodal biometric data capture and identity-management system combining fingerprint and facial features for identity verification. The application supports data enrolment, biometric capture, verification, operator administration and integration with biometric capture devices.",
+      "tags": [
+        "C#",
+        "Windows Forms",
+        "Multimodal Biometrics",
+        "Fingerprint Recognition",
+        "Facial Recognition",
+        "Identity Verification",
+        "Biometric Enrolment",
+        "Device Integration"
+      ],
+      "isPrivateRepo": true,
+      "images": [
+        {
+          "file": "projects/biometric-system.webp",
+          "altText": "Multimodal biometric identity capture and verification application",
+          "kind": "Primary"
+        }
+      ]
+    },
+    {
+      "title": "Network Video Surveillance",
+      "slug": "network-video-surveillance",
+      "subtitle": "Multi-Camera Monitoring System",
+      "category": "Engineering",
+      "label": "Security Technology",
+      "description": "A network video surveillance solution supporting multiple camera sources and configurable monitoring views within a central desktop environment.",
+      "tags": [
+        "C#",
+        ".NET",
+        "NVR",
+        "Network Cameras",
+        "Video Monitoring",
+        "Desktop Software",
+        "Security Systems"
+      ],
+      "isPrivateRepo": true,
+      "images": [
+        {
+          "file": "projects/nvr-system.webp",
+          "altText": "Network video surveillance application with multi-camera monitoring grid",
+          "kind": "Primary"
+        }
+      ]
+    },
+    {
+      "title": "Automated Operations System",
+      "slug": "automated-operations-system",
+      "subtitle": "Enterprise API & Process Automation",
+      "category": "Engineering",
+      "label": "Enterprise Software",
+      "description": "An enterprise operations API developed to improve the provision and exchange of organisational data across departments while supporting more efficient digital workflows.",
+      "tags": [
+        "C#",
+        "ASP.NET Core",
+        "REST API",
+        "Enterprise Systems",
+        "Process Automation",
+        "MS SQL"
+      ],
+      "isPrivateRepo": true,
+      "images": []
+    },
+    {
+      "title": "Digital Archiving System",
+      "slug": "digital-archiving-system",
+      "subtitle": "Document & Script Tracking",
+      "category": "Engineering",
+      "label": "Enterprise Software",
+      "description": "A digital archiving and tracking solution designed to improve document traceability and support faster investigation and resolution of operational enquiries.",
+      "tags": [
+        "C#",
+        ".NET",
+        "ASP.NET Core",
+        "Document Management",
+        "Digital Transformation"
+      ],
+      "isPrivateRepo": true,
+      "images": []
+    },
+    {
+      "title": "Biometric Time, Attendance & Access Control",
+      "slug": "biometric-time-attendance-access-control",
+      "subtitle": "Real-Time Workforce & Security Management",
+      "category": "Engineering",
+      "label": "Biometric Systems",
+      "description": "An integrated biometric time, attendance and access-control system using iClock 700, with real-time remote device monitoring and communication through HTTP sockets. The system supports personnel enrolment, attendance management, access control, device-status monitoring and remote operational oversight.",
+      "tags": [
+        "C#",
+        "WPF",
+        "iClock 700",
+        "Biometrics",
+        "Time & Attendance",
+        "Access Control",
+        "HTTP Sockets",
+        "Real-Time Monitoring",
+        "Device Integration"
+      ],
+      "isPrivateRepo": true,
+      "images": [
+        {
+          "file": "projects/time-attendance-system.webp",
+          "altText": "Biometric time attendance and access control management dashboard",
+          "kind": "Primary"
+        }
+      ]
+    }
+  ],
+  "publications": [
+    {
+      "title": "A Fully Transformer-Based Multimodal Framework for Explainable Breast Cancer Image Segmentation Using Radiology Reports",
+      "authors": "Enobong Adahada, Isabel Sassoon, Kate Hone and Yongmin Li",
+      "venue": "ICCVDM 2025",
+      "year": 2025,
+      "type": "ConferencePaper",
+      "award": "Best Paper Award",
+      "links": [
+        {
+          "label": "View on IEEE Xplore",
+          "url": "https://ieeexplore.ieee.org/document/11290557",
+          "isPrimary": true
+        },
+        {
+          "label": "ResearchGate",
+          "url": "https://www.researchgate.net/publication/398847954_A_Fully_Transformer-Based_Multimodal_Framework_for_Explainable_Breast_Cancer_Image_Segmentation_Using_Radiology_Reports",
+          "isPrimary": false
+        }
+      ]
+    },
+    {
+      "title": "Detection of Face-Mask in Real Time: A Cascaded Bi-Level Feature Extraction Technique Approach",
+      "authors": "Solomon Adelowo Adepoju, Enobong Thomas Adahada, Opeyemi Aderiike Abisoye and Abdumalik Danlami Mohammed",
+      "venue": "International Journal of Applied Methods in Electronics and Computers, Volume 11, Issue 4, 186-196",
+      "year": 2023,
+      "type": "JournalArticle",
+      "links": [
+        {
+          "label": "View on IJAMEC page",
+          "url": "https://ijamec.org/index.php/ijamec/article/view/376/357",
+          "isPrimary": true
+        },
+        {
+          "label": "ResearchGate",
+          "url": "https://www.researchgate.net/publication/377011936_Detection_of_Face-Mask_in_Real_Time_A_Cascaded_Bi-Level_Feature_Extraction_Technique_Approach",
+          "isPrimary": false
+        }
+      ]
+    }
+  ],
+  "presentations": [
+    {
+      "title": "Breast Cancer Image Segmentation using Multi-modal Transformers",
+      "eventName": "Brunel College of Engineering, Design and Physical Sciences Symposium 2025.",
+      "year": 2025,
+      "type": "Poster",
+      "image": "research/cedps-symposium-2025.webp",
+      "imageAlt": "CEDPS Symposium 2025 research poster"
+    },
+    {
+      "title": "Unified Transformer Architecture for Breast Tumor Segmentation Across Multiple Modalities",
+      "eventName": "Brunel Bioinformatics Symposium 2025.",
+      "year": 2025,
+      "type": "Oral",
+      "image": "research/brunel-bioinformatics-symposium-2025.webp",
+      "imageAlt": "Brunel Bioinformatics Symposium 2025 presentation"
+    },
+    {
+      "title": "Real-Time Face Mask Detection Using Cascaded Bi-Level Feature Extraction Techniques for Access Restriction in Public Buildings",
+      "eventName": "Presented at the 5th ITED 2022 Conference, Nile University of Nigeria, Abuja.",
+      "year": 2022,
+      "type": "Conference",
+      "image": "research/ited-2022-certificate.webp",
+      "imageAlt": "ITED 2022 conference presentation certificate"
+    }
+  ],
+  "experienceAreas": [
+    {
+      "title": "Software Engineering",
+      "description": "Extensive experience designing, developing and supporting software systems for complex organisational environments, with a focus on reliability, automation and practical problem-solving.",
+      "skills": [
+        "C#",
+        ".NET",
+        "ASP.NET Core",
+        "SQL Server",
+        "APIs",
+        "Enterprise Systems"
+      ]
+    },
+    {
+      "title": "Technical Leadership",
+      "description": "Experience leading software development initiatives, supporting technical teams and translating operational requirements into scalable digital solutions.",
+      "skills": [
+        "Technical Leadership",
+        "System Design",
+        "Digital Transformation",
+        "Mentoring",
+        "Solution Architecture"
+      ]
+    },
+    {
+      "title": "Artificial Intelligence Research",
+      "description": "Research focused on multimodal artificial intelligence, computer vision, medical imaging and explainable AI, with particular interest in trustworthy systems for healthcare.",
+      "skills": [
+        "Python",
+        "Deep Learning",
+        "Computer Vision",
+        "Multimodal AI",
+        "Explainable AI",
+        "Medical Imaging"
+      ]
+    },
+    {
+      "title": "Clinical AI Innovation",
+      "description": "Applying AI research and software engineering to real-world healthcare challenges, including evidence-grounded clinical decision support and semantic retrieval.",
+      "skills": [
+        "Clinical Decision Support",
+        "Semantic Retrieval",
+        "Healthcare AI",
+        "Research",
+        "Prototyping"
+      ]
+    }
+  ],
+  "skillGroups": [
+    {
+      "title": "Software Engineering",
+      "description": "Designing and developing production software, APIs, full-stack platforms and cross-platform applications using modern engineering practices.",
+      "skills": [
+        "C#",
+        ".NET",
+        "ASP.NET Core",
+        "REST APIs",
+        "React",
+        "TypeScript",
+        ".NET MAUI",
+        "Python",
+        "Django",
+        "SQL Server",
+        "Entity Framework Core",
+        "CQRS",
+        "MediatR",
+        "Clean Architecture",
+        "CI/CD"
+      ]
+    },
+    {
+      "title": "Artificial Intelligence & Machine Learning",
+      "description": "Researching and developing intelligent systems with particular focus on multimodal learning, computer vision and trustworthy AI.",
+      "skills": [
+        "Python",
+        "PyTorch",
+        "Machine Learning",
+        "Deep Learning",
+        "Transformers",
+        "Vision Transformers",
+        "Swin Transformer",
+        "Computer Vision",
+        "Medical Imaging",
+        "Multimodal AI",
+        "Explainable AI",
+        "Uncertainty Quantification"
+      ]
+    },
+    {
+      "title": "Data & Intelligent Systems",
+      "description": "Building systems that transform complex data into useful operational, analytical and decision-support capabilities.",
+      "skills": [
+        "Semantic Retrieval",
+        "Clinical Decision Support",
+        "Data Processing",
+        "OMR Processing",
+        "Biometric Systems",
+        "Identity Verification",
+        "Real-Time Monitoring",
+        "Process Automation",
+        "Enterprise Systems",
+        "Device Integration"
+      ]
+    },
+    {
+      "title": "Research & Technical Practice",
+      "description": "Applying rigorous research and evaluation methods to the development and communication of scientific and intelligent systems.",
+      "skills": [
+        "Experimental Design",
+        "Model Evaluation",
+        "Scientific Software",
+        "Research Methodology",
+        "Academic Writing",
+        "Technical Communication",
+        "Peer-Reviewed Research",
+        "Research Presentation"
+      ]
+    },
+    {
+      "title": "Architecture & Technical Leadership",
+      "description": "Translating organisational and technical requirements into maintainable systems while supporting modernisation and digital transformation.",
+      "skills": [
+        "Software Architecture",
+        "System Design",
+        "API Architecture",
+        "Requirements Analysis",
+        "Legacy Modernisation",
+        "Digital Transformation",
+        "Technical Delivery",
+        "System Integration"
+      ]
+    }
+  ],
+  "coreExpertise": [
+    "Software Engineering",
+    "Full-Stack Development",
+    "Artificial Intelligence",
+    "Multimodal AI",
+    "Explainable AI",
+    "Computer Vision",
+    "Intelligent Systems",
+    "AI for Healthcare"
+  ]
+}

@@ -1,0 +1,38 @@
+using Zayun.Presentation.Endpoints.Auth;
+using Zayun.Presentation.Endpoints.Contact;
+using Zayun.Presentation.Endpoints.Dashboard;
+using Zayun.Presentation.Endpoints.Experience;
+using Zayun.Presentation.Endpoints.Presentations;
+using Zayun.Presentation.Endpoints.Projects;
+using Zayun.Presentation.Endpoints.Publications;
+using Zayun.Presentation.Endpoints.Skills;
+
+namespace Zayun.Presentation.Extensions;
+
+/// <summary>Every route of the API, in one place.</summary>
+public static class EndpointExtensions
+{
+    /// <summary>Maps all endpoint groups under <c>/api</c>, plus <c>/health</c>.</summary>
+    /// <param name="app">The web application.</param>
+    /// <returns>The same application, for chaining.</returns>
+    public static WebApplication MapZayunEndpoints(this WebApplication app)
+    {
+        // 1. API groups
+        var api = app.MapGroup("/api");
+
+        api.MapAuthEndpoints();              // /api/auth
+        api.MapProjectEndpoints();           // /api/projects        + /api/admin/projects
+        api.MapPublicationEndpoints();       // /api/publications    + /api/admin/publications
+        api.MapPresentationEndpoints();      // /api/presentations   + /api/admin/presentations
+        api.MapExperienceEndpoints();        // /api/experience      + /api/admin/experience
+        api.MapSkillEndpoints();             // /api/skills          + /api/admin/skills
+        api.MapContactEndpoints();           // /api/contact         + /api/admin/contact-messages
+        api.MapDashboardEndpoints();         //                        /api/admin/overview
+
+        // 2. Health (not in Swagger)
+        app.MapGet("/health", () => Results.Ok(new { status = "healthy", timestamp = DateTime.UtcNow }))
+           .ExcludeFromDescription();
+
+        return app;
+    }
+}

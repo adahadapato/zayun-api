@@ -1,0 +1,80 @@
+# Requests to try the API from Visual Studio / Rider (or the VS Code REST Client).
+# 1. Run the "https" profile.  2. Send "Sign in" and copy accessToken into @token below.
+
+@host = https://localhost:7211
+@token = paste-the-access-token-here
+
+### Health
+GET {{host}}/health
+
+### Website: projects (all, or ?category=Featured / Engineering)
+GET {{host}}/api/projects
+
+### Website: one project by its web address
+GET {{host}}/api/projects/rccg-hope-house
+
+### Website: research
+GET {{host}}/api/publications
+
+###
+GET {{host}}/api/presentations
+
+### Website: experience and skills
+GET {{host}}/api/experience
+
+###
+GET {{host}}/api/skills
+
+### Website: Contact form
+POST {{host}}/api/contact/messages
+Content-Type: application/json
+
+{
+  "name": "Test Visitor",
+  "email": "visitor@example.com",
+  "organisation": "Example University",
+  "topic": "Research",
+  "message": "Hello! I'd like to talk about your Med-CTX paper."
+}
+
+### Sign in (use SeedData:AdminEmail and the password from User Secrets)
+POST {{host}}/api/auth/login
+Content-Type: application/json
+
+{
+  "email": "enobong.adahada@gmail.com",
+  "password": "your-password"
+}
+
+### Who am I
+GET {{host}}/api/auth/me
+Authorization: Bearer {{token}}
+
+### Admin: dashboard numbers
+GET {{host}}/api/admin/overview
+Authorization: Bearer {{token}}
+
+### Admin: every project, drafts included
+GET {{host}}/api/admin/projects
+Authorization: Bearer {{token}}
+
+### Admin: new project (as a draft)
+POST {{host}}/api/admin/projects
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+  "title": "Zayun API",
+  "subtitle": "Portfolio Content Platform",
+  "description": "The ASP.NET Core API behind zayun.net.",
+  "category": "Engineering",
+  "label": "Full-Stack Engineering",
+  "githubUrl": "https://github.com/adahadapato/zayun-web",
+  "isPrivateRepo": false,
+  "tags": ["ASP.NET Core", "Clean Architecture", "CQRS"],
+  "isPublished": false
+}
+
+### Admin: inbox
+GET {{host}}/api/admin/contact-messages?status=New
+Authorization: Bearer {{token}}
