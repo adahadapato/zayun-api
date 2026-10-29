@@ -390,7 +390,7 @@ Development). 🛡 = Admin role.
 |---|---|
 | Dashboard | GET `/overview` |
 | Projects | GET `/projects` · `/projects/{id}`; POST `/projects`; PUT `/projects/{id}` · `/{id}/published` · `/order`; DELETE `/projects/{id}` |
-| Project pictures | POST `/projects/{id}/images` (multipart: `file`, `altText`, `label`, `kind`); PUT `/{id}/images/{imageId}` · `/{id}/images/order`; DELETE `/{id}/images/{imageId}` |
+| Project pictures | POST `/projects/{id}/images` (multipart: `file`, `altText`, `label`, `kind`); PUT `/{id}/images/{imageId}` · `/{id}/images/{imageId}/file` (multipart: `file`, swaps the picture) · `/{id}/images/order`; DELETE `/{id}/images/{imageId}` |
 | Publications | GET/POST `/publications`; PUT `/publications/{id}` · `/{id}/published` · `/order`; DELETE `/publications/{id}` |
 | Presentations | GET/POST `/presentations`; PUT `/presentations/{id}` · `/{id}/published` · `/{id}/image` (multipart: `file`, `altText`) · `/order`; DELETE `/presentations/{id}` · `/{id}/image` |
 | Experience | GET/POST `/experience`; PUT `/experience/{id}` · `/{id}/published` · `/order`; DELETE `/experience/{id}` |

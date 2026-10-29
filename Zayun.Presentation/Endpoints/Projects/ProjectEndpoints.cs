@@ -135,6 +135,22 @@ public static class ProjectEndpoints
             .ProducesProblem(StatusCodes.Status404NotFound)
             .ProducesProblem(StatusCodes.Status409Conflict);
 
+        admin.MapPut("/{id:guid}/images/{imageId:guid}/file",
+                async (Guid id, Guid imageId, IFormFile file, ISender sender, CancellationToken ct) =>
+                {
+                    await using var content = file.OpenReadStream();
+                    return (await sender.Send(new ReplaceProjectImageFileCommand(id, imageId, content, file.Length), ct))
+                        .ToHttp();
+                })
+            .WithName("ReplaceProjectImageFile")
+            .WithSummary("Change a picture's file, keeping its place, alt text, caption and kind (multipart: file)")
+            .Accepts<IFormFile>("multipart/form-data")
+            .Produces<ProjectImageDto>()
+            .ProducesValidationProblem()
+            .ProducesProblem(StatusCodes.Status404NotFound)
+            .ProducesProblem(StatusCodes.Status409Conflict)
+            .DisableAntiforgery();
+
         admin.MapDelete("/{id:guid}/images/{imageId:guid}",
                 async (Guid id, Guid imageId, ISender sender, CancellationToken ct) =>
                     (await sender.Send(new DeleteProjectImageCommand(id, imageId), ct)).ToHttp())

@@ -173,6 +173,25 @@ public class Project : ContentEntity
         return Result.Success();
     }
 
+    /// <summary>
+    /// Swaps a picture's file for a new one, keeping its place, alt text, caption and kind (Admin → Edit picture →
+    /// Change picture).
+    /// </summary>
+    /// <param name="imageId">The picture.</param>
+    /// <param name="file">The new stored file.</param>
+    /// <returns>The file it replaced (so its files can be deleted); or ImageNotFound or DuplicateImage.</returns>
+    public Result<ImageFile> ReplaceImageFile(Guid imageId, ImageFile file)
+    {
+        ArgumentNullException.ThrowIfNull(file);
+        var image = FindImage(imageId);
+        if (image is null) return ProjectErrors.ImageNotFound;
+        if (_images.Any(i => i.Id != imageId && i.File.Hash == file.Hash)) return ProjectErrors.DuplicateImage;
+
+        var previous = image.File;
+        image.ReplaceFile(file);
+        return previous;
+    }
+
     /// <summary>Takes a picture off the project and closes the gap in the order.</summary>
     /// <param name="imageId">The picture.</param>
     /// <returns>The removed picture (so its files can be deleted); or ImageNotFound.</returns>

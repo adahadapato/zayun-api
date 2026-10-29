@@ -74,6 +74,18 @@ public sealed class ReorderProjectsCommandValidator : AbstractValidator<ReorderP
     public ReorderProjectsCommandValidator() => RuleFor(x => x.Ids).ReorderList();
 }
 
+/// <summary>Checks <see cref="ReplaceProjectImageFileCommand"/>.</summary>
+public sealed class ReplaceProjectImageFileCommandValidator : AbstractValidator<ReplaceProjectImageFileCommand>
+{
+    /// <summary>The rules.</summary>
+    public ReplaceProjectImageFileCommandValidator()
+    {
+        RuleFor(x => x.ProjectId).NotEmpty();
+        RuleFor(x => x.ImageId).NotEmpty();
+        RuleFor(x => x.SizeBytes).UploadSize();
+    }
+}
+
 /// <summary>Checks <see cref="AddProjectImageCommand"/>.</summary>
 public sealed class AddProjectImageCommandValidator : AbstractValidator<AddProjectImageCommand>
 {

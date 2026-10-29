@@ -71,4 +71,11 @@ public class ProjectImage : Entity<Guid>
     }
 
     internal void SetDisplayOrder(int order) => DisplayOrder = order;
+
+    /// <summary>Points the picture at a new stored file (through <see cref="Project.ReplaceImageFile"/>).</summary>
+    internal void ReplaceFile(ImageFile file)
+    {
+        ArgumentNullException.ThrowIfNull(file);
+        File = file;
+    }
 }
