@@ -28,4 +28,7 @@ public static class CacheTags
 
     /// <summary>GET /api/profiles.</summary>
     public const string Profiles = "profiles";
+
+    /// <summary>GET /api/site-images (the owner's photo and other named pictures).</summary>
+    public const string SiteImages = "site-images";
 }

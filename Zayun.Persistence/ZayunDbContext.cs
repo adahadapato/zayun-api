@@ -46,6 +46,9 @@ public sealed class ZayunDbContext(DbContextOptions<ZayunDbContext> options)
     /// <summary>Awards and recognition (with their picture).</summary>
     public DbSet<Award> Awards => Set<Award>();
 
+    /// <summary>Named pictures on the website, e.g. the owner's photo.</summary>
+    public DbSet<SiteImage> SiteImages => Set<SiteImage>();
+
     /// <summary>Online profiles (ORCID, ResearchGate, LinkedIn…).</summary>
     public DbSet<Profile> Profiles => Set<Profile>();
 

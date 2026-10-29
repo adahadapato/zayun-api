@@ -330,6 +330,7 @@ dotnet ef database update     --project Zayun.Persistence --startup-project Zayu
 | `ExperienceAreas`, `SkillGroups` | text + skills (JSON column) |
 | `CoreExpertise` | the short list on the Skills page |
 | `Awards` | awards (picture columns, all null when there is none; `IsFeatured` = also on About / Experience) |
+| `SiteImages` | named pictures, one per slot (`OwnerPhoto`: the photo on About) |
 | `Profiles` | online profiles: platform (for the icon), name, link, label, where it's shown |
 | `Tags` | the shared tag list: `Name` as shown, `NormalizedName` (UPPERCASE key, unique), `Aliases` (JSON) |
 | `ContactMessages` | the inbox |
@@ -391,6 +392,7 @@ Development). 🛡 = Admin role.
 | GET | `/presentations` | presentations with pictures |
 | GET | `/experience` | experience areas |
 | GET | `/skills` | `{ groups, coreExpertise }` |
+| GET | `/site-images` | named pictures, e.g. the owner's photo |
 | GET | `/profiles` | online profiles (`showInFooter`, `showOnContact`, `showOnResearch`) |
 | GET | `/awards` | awards with pictures (`isFeatured` for the About / Experience highlights) |
 | POST | `/contact/messages` | the Contact form (rate limited) |
@@ -409,6 +411,7 @@ Development). 🛡 = Admin role.
 | Experience | GET/POST `/experience`; PUT `/experience/{id}` · `/{id}/published` · `/order`; DELETE `/experience/{id}` |
 | Skills | GET `/skills`; POST `/skills/groups` · `/skills/expertise`; PUT `/skills/groups/{id}` · `/{id}/published` · `/order` (same for `/skills/expertise`); DELETE `/skills/groups/{id}` · `/skills/expertise/{id}` |
 | Awards | GET/POST `/awards`; PUT `/awards/{id}` · `/{id}/published` · `/{id}/image` (multipart: `file`, `altText`) · `/order`; DELETE `/awards/{id}` · `/{id}/image` |
+| Site pictures | PUT `/site-images/{slot}` (multipart: `file`, `altText`) · `/site-images/{slot}/description` `{ altText }`; DELETE `/site-images/{slot}` |
 | Profiles | GET/POST `/profiles`; PUT `/profiles/{id}` · `/{id}/published` · `/order`; DELETE `/profiles/{id}` |
 | Tags | GET `/tags`; POST `/tags/check` `{ name }` (Existing / New / Doubtful) · `/tags` `{ name }` · `/tags/{id}/merge` `{ intoTagId }`; PUT `/tags/{id}` `{ name }` (rename everywhere); DELETE `/tags/{id}` (only when unused) |
 | Inbox | GET `/contact-messages?status=&page=&pageSize=` · `/contact-messages/{id}`; PUT `/{id}/status`; DELETE `/{id}` |
@@ -457,7 +460,7 @@ shown as-is; front ends act on `code`.
 
 The public queries are cached for 60 minutes with `HybridCache` through `[Cacheable(tag)]`; every admin command that
 changes the same content carries `[InvalidatesCache(tag)]`, so edits show on the website straight away. Tags:
-`projects`, `publications`, `presentations`, `experience`, `skills`, `awards`, `profiles` (`CacheTags.cs`).
+`projects`, `publications`, `presentations`, `experience`, `skills`, `awards`, `profiles`, `site-images` (`CacheTags.cs`).
 
 **Never cached:** admin screens and the inbox.
 
@@ -465,7 +468,7 @@ changes the same content carries `[InvalidatesCache(tag)]`, so edits show on the
 
 ## 12. Pictures and email
 
-- **Pictures** are stored under `wwwroot/uploads` (`projects/{projectId}/…`, `presentations/{id}/…`, `awards/{id}/…`) and served at
+- **Pictures** are stored under `wwwroot/uploads` (`projects/{projectId}/…`, `presentations/{id}/…`, `awards/{id}/…`, `site/{slot}/…`) and served at
   `{ApiBaseUrl}/uploads/…` with a one-year cache (file names never repeat). Magick.NET fixes rotation, strips
   metadata, shrinks to 1920 px (never enlarges), makes a 640 px thumbnail and writes both as WebP; transparency is
   kept. JPEG, PNG, WebP and HEIC are accepted, up to 15 MB.

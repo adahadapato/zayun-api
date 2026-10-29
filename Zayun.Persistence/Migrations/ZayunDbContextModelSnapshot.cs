@@ -704,6 +704,42 @@ namespace Zayun.Persistence.Migrations
                     b.ToTable("RefreshTokens", (string)null);
                 });
 
+            modelBuilder.Entity("Zayun.Domain.Entities.SiteImage", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<string>("AltText")
+                        .IsRequired()
+                        .HasMaxLength(300)
+                        .HasColumnType("nvarchar(300)");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<DateTime?>("DeletedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<bool>("IsDeleted")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bit")
+                        .HasDefaultValue(false);
+
+                    b.Property<int>("Slot")
+                        .HasColumnType("int");
+
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("Slot")
+                        .IsUnique()
+                        .HasFilter("[IsDeleted] = 0");
+
+                    b.ToTable("SiteImages", (string)null);
+                });
+
             modelBuilder.Entity("Zayun.Domain.Entities.SkillGroup", b =>
                 {
                     b.Property<Guid>("Id")
@@ -1251,6 +1287,69 @@ namespace Zayun.Persistence.Migrations
                         .WithMany()
                         .HasForeignKey("UserId")
                         .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+                });
+
+            modelBuilder.Entity("Zayun.Domain.Entities.SiteImage", b =>
+                {
+                    b.OwnsOne("Zayun.Domain.ValueObjects.ImageFile", "Image", b1 =>
+                        {
+                            b1.Property<Guid>("SiteImageId")
+                                .HasColumnType("uniqueidentifier");
+
+                            b1.Property<string>("ContentType")
+                                .IsRequired()
+                                .HasMaxLength(100)
+                                .HasColumnType("nvarchar(100)");
+
+                            b1.Property<long>("FileSizeBytes")
+                                .HasColumnType("bigint");
+
+                            b1.Property<string>("Hash")
+                                .IsRequired()
+                                .HasMaxLength(64)
+                                .HasColumnType("nvarchar(64)");
+
+                            b1.Property<string>("Path")
+                                .IsRequired()
+                                .HasMaxLength(500)
+                                .HasColumnType("nvarchar(500)");
+
+                            b1.Property<string>("ThumbnailPath")
+                                .HasMaxLength(500)
+                                .HasColumnType("nvarchar(500)");
+
+                            b1.HasKey("SiteImageId");
+
+                            b1.ToTable("SiteImages");
+
+                            b1.WithOwner()
+                                .HasForeignKey("SiteImageId");
+
+                            b1.OwnsOne("Zayun.Domain.ValueObjects.ImageDimensions", "Dimensions", b2 =>
+                                {
+                                    b2.Property<Guid>("ImageFileSiteImageId")
+                                        .HasColumnType("uniqueidentifier");
+
+                                    b2.Property<int>("Height")
+                                        .HasColumnType("int");
+
+                                    b2.Property<int>("Width")
+                                        .HasColumnType("int");
+
+                                    b2.HasKey("ImageFileSiteImageId");
+
+                                    b2.ToTable("SiteImages");
+
+                                    b2.WithOwner()
+                                        .HasForeignKey("ImageFileSiteImageId");
+                                });
+
+                            b1.Navigation("Dimensions")
+                                .IsRequired();
+                        });
+
+                    b.Navigation("Image")
                         .IsRequired();
                 });
 
