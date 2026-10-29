@@ -372,6 +372,43 @@ namespace Zayun.Persistence.Migrations
                     b.ToTable("ExperienceAreas", (string)null);
                 });
 
+            modelBuilder.Entity("Zayun.Domain.Entities.PersonalDetails", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<DateTime?>("DeletedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("FullName")
+                        .IsRequired()
+                        .HasMaxLength(120)
+                        .HasColumnType("nvarchar(120)");
+
+                    b.Property<string>("Headline")
+                        .HasMaxLength(160)
+                        .HasColumnType("nvarchar(160)");
+
+                    b.Property<bool>("IsDeleted")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bit")
+                        .HasDefaultValue(false);
+
+                    b.Property<string>("PublicEmail")
+                        .HasMaxLength(256)
+                        .HasColumnType("nvarchar(256)");
+
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("PersonalDetails", (string)null);
+                });
+
             modelBuilder.Entity("Zayun.Domain.Entities.Presentation", b =>
                 {
                     b.Property<Guid>("Id")
@@ -1114,6 +1151,88 @@ namespace Zayun.Persistence.Migrations
 
                     b.Navigation("File")
                         .IsRequired();
+                });
+
+            modelBuilder.Entity("Zayun.Domain.Entities.PersonalDetails", b =>
+                {
+                    b.OwnsMany("Zayun.Domain.Entities.ContactPhone", "Phones", b1 =>
+                        {
+                            b1.Property<Guid>("PersonalDetailsId");
+
+                            b1.Property<int>("__synthesizedOrdinal")
+                                .ValueGeneratedOnAddOrUpdate();
+
+                            b1.Property<string>("Label")
+                                .IsRequired()
+                                .HasMaxLength(40);
+
+                            b1.Property<string>("Number")
+                                .IsRequired()
+                                .HasMaxLength(30);
+
+                            b1.Property<bool>("ShowOnWebsite");
+
+                            b1.HasKey("PersonalDetailsId", "__synthesizedOrdinal");
+
+                            b1.ToTable("PersonalDetails");
+
+                            b1
+                                .ToJson("Phones")
+                                .HasColumnType("nvarchar(max)");
+
+                            b1.WithOwner()
+                                .HasForeignKey("PersonalDetailsId");
+                        });
+
+                    b.OwnsMany("Zayun.Domain.Entities.PostalAddress", "Addresses", b1 =>
+                        {
+                            b1.Property<Guid>("PersonalDetailsId");
+
+                            b1.Property<int>("__synthesizedOrdinal")
+                                .ValueGeneratedOnAddOrUpdate();
+
+                            b1.Property<string>("City")
+                                .IsRequired()
+                                .HasMaxLength(100);
+
+                            b1.Property<string>("Country")
+                                .IsRequired()
+                                .HasMaxLength(100);
+
+                            b1.Property<string>("Label")
+                                .IsRequired()
+                                .HasMaxLength(40);
+
+                            b1.Property<string>("Line1")
+                                .IsRequired()
+                                .HasMaxLength(200);
+
+                            b1.Property<string>("Line2")
+                                .HasMaxLength(200);
+
+                            b1.Property<string>("Postcode")
+                                .HasMaxLength(20);
+
+                            b1.Property<string>("Region")
+                                .HasMaxLength(100);
+
+                            b1.Property<bool>("ShowOnWebsite");
+
+                            b1.HasKey("PersonalDetailsId", "__synthesizedOrdinal");
+
+                            b1.ToTable("PersonalDetails");
+
+                            b1
+                                .ToJson("Addresses")
+                                .HasColumnType("nvarchar(max)");
+
+                            b1.WithOwner()
+                                .HasForeignKey("PersonalDetailsId");
+                        });
+
+                    b.Navigation("Addresses");
+
+                    b.Navigation("Phones");
                 });
 
             modelBuilder.Entity("Zayun.Domain.Entities.Presentation", b =>

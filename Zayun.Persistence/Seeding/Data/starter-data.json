@@ -547,5 +547,22 @@
       "showOnContact": true,
       "showOnResearch": false
     }
-  ]
+  ],
+  "personalDetails": {
+    "fullName": "Enobong Adahada",
+    "headline": "Software Engineer and AI Researcher",
+    "publicEmail": "enobong.adahada@gmail.com",
+    "phones": [
+      {
+        "label": "UK",
+        "number": "+44 7881 186690",
+        "showOnWebsite": true
+      },
+      {
+        "label": "Nigeria",
+        "number": "+234 802 317 6049",
+        "showOnWebsite": true
+      }
+    ]
+  }
 }

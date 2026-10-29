@@ -31,4 +31,7 @@ public static class CacheTags
 
     /// <summary>GET /api/site-images (the owner's photo and other named pictures).</summary>
     public const string SiteImages = "site-images";
+
+    /// <summary>GET /api/personal-details (only what's switched on for the website).</summary>
+    public const string PersonalDetails = "personal-details";
 }

@@ -62,6 +62,7 @@ internal static class StarterDataSeeder
         await SeedCoreExpertiseAsync(context, data, logger, cancellationToken);
         await SeedAwardsAsync(context, data, pictures, logger, cancellationToken);
         await SeedProfilesAsync(context, data, logger, cancellationToken);
+        await SeedPersonalDetailsAsync(context, data, logger, cancellationToken);
     }
 
     // ───────────────────────────── Blocks ─────────────────────────────
@@ -193,6 +194,18 @@ internal static class StarterDataSeeder
 
         await context.SaveChangesAsync(ct);
         logger.LogInformation("Seeded {Count} profiles", data.Profiles.Count);
+    }
+
+    private static async Task SeedPersonalDetailsAsync(ZayunDbContext context, StarterData data, ILogger logger,
+                                                       CancellationToken ct)
+    {
+        var p = data.PersonalDetails;
+        if (p is null || await context.PersonalDetails.IgnoreQueryFilters().AnyAsync(ct)) return;
+
+        context.PersonalDetails.Add(Check("personal details", () => PersonalDetails.Create(
+            new PersonalDetailsInput(p.FullName, p.Headline, p.PublicEmail, p.Phones, Addresses: []))));
+        await context.SaveChangesAsync(ct);
+        logger.LogInformation("Seeded personal details");
     }
 
     private static async Task SeedExperienceAsync(ZayunDbContext context, StarterData data, ILogger logger,

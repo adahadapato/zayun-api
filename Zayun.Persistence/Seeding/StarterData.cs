@@ -1,3 +1,4 @@
+using Zayun.Domain.Entities;
 using Zayun.Domain.Enums;
 
 namespace Zayun.Persistence.Seeding;
@@ -14,6 +15,16 @@ internal sealed class StarterData
     public List<string> CoreExpertise { get; set; } = [];
     public List<StarterAward> Awards { get; set; } = [];
     public List<StarterProfile> Profiles { get; set; } = [];
+    public StarterPersonalDetails? PersonalDetails { get; set; }
+}
+
+/// <summary>The owner's personal details (only what the website already showed).</summary>
+internal sealed class StarterPersonalDetails
+{
+    public string FullName { get; set; } = string.Empty;
+    public string? Headline { get; set; }
+    public string? PublicEmail { get; set; }
+    public List<PhoneInput> Phones { get; set; } = [];
 }
 
 /// <summary>One online profile.</summary>

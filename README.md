@@ -330,6 +330,7 @@ dotnet ef database update     --project Zayun.Persistence --startup-project Zayu
 | `ExperienceAreas`, `SkillGroups` | text + skills (JSON column) |
 | `CoreExpertise` | the short list on the Skills page |
 | `Awards` | awards (picture columns, all null when there is none; `IsFeatured` = also on About / Experience) |
+| `PersonalDetails` | the owner's details (one row): name, headline, public email; phones and addresses as JSON, each with a "show on website" switch |
 | `SiteImages` | named pictures, one per slot (`OwnerPhoto`: the photo on About) |
 | `Profiles` | online profiles: platform (for the icon), name, link, label, where it's shown |
 | `Tags` | the shared tag list: `Name` as shown, `NormalizedName` (UPPERCASE key, unique), `Aliases` (JSON) |
@@ -392,6 +393,7 @@ Development). 🛡 = Admin role.
 | GET | `/presentations` | presentations with pictures |
 | GET | `/experience` | experience areas |
 | GET | `/skills` | `{ groups, coreExpertise }` |
+| GET | `/personal-details` | name, headline, public email, phones switched on, town / country of addresses switched on |
 | GET | `/site-images` | named pictures, e.g. the owner's photo |
 | GET | `/profiles` | online profiles (`showInFooter`, `showOnContact`, `showOnResearch`) |
 | GET | `/awards` | awards with pictures (`isFeatured` for the About / Experience highlights) |
@@ -411,6 +413,7 @@ Development). 🛡 = Admin role.
 | Experience | GET/POST `/experience`; PUT `/experience/{id}` · `/{id}/published` · `/order`; DELETE `/experience/{id}` |
 | Skills | GET `/skills`; POST `/skills/groups` · `/skills/expertise`; PUT `/skills/groups/{id}` · `/{id}/published` · `/order` (same for `/skills/expertise`); DELETE `/skills/groups/{id}` · `/skills/expertise/{id}` |
 | Awards | GET/POST `/awards`; PUT `/awards/{id}` · `/{id}/published` · `/{id}/image` (multipart: `file`, `altText`) · `/order`; DELETE `/awards/{id}` · `/{id}/image` |
+| Personal details | GET / PUT `/personal-details` (everything, private parts included) |
 | Site pictures | PUT `/site-images/{slot}` (multipart: `file`, `altText`) · `/site-images/{slot}/description` `{ altText }`; DELETE `/site-images/{slot}` |
 | Profiles | GET/POST `/profiles`; PUT `/profiles/{id}` · `/{id}/published` · `/order`; DELETE `/profiles/{id}` |
 | Tags | GET `/tags`; POST `/tags/check` `{ name }` (Existing / New / Doubtful) · `/tags` `{ name }` · `/tags/{id}/merge` `{ intoTagId }`; PUT `/tags/{id}` `{ name }` (rename everywhere); DELETE `/tags/{id}` (only when unused) |
@@ -460,7 +463,7 @@ shown as-is; front ends act on `code`.
 
 The public queries are cached for 60 minutes with `HybridCache` through `[Cacheable(tag)]`; every admin command that
 changes the same content carries `[InvalidatesCache(tag)]`, so edits show on the website straight away. Tags:
-`projects`, `publications`, `presentations`, `experience`, `skills`, `awards`, `profiles`, `site-images` (`CacheTags.cs`).
+`projects`, `publications`, `presentations`, `experience`, `skills`, `awards`, `profiles`, `site-images`, `personal-details` (`CacheTags.cs`).
 
 **Never cached:** admin screens and the inbox.
 

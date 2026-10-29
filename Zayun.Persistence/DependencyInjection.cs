@@ -125,6 +125,7 @@ public static class DependencyInjection
         services.AddScoped<ITagRepository, TagRepository>();
         services.AddScoped<IProfileRepository, ProfileRepository>();
         services.AddScoped<ISiteImageRepository, SiteImageRepository>();
+        services.AddScoped<IPersonalDetailsRepository, PersonalDetailsRepository>();
 
         // 5b. Inbox and private documents
         services.AddScoped<IContactMessageRepository, ContactMessageRepository>();

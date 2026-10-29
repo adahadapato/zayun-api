@@ -46,6 +46,9 @@ public sealed class ZayunDbContext(DbContextOptions<ZayunDbContext> options)
     /// <summary>Awards and recognition (with their picture).</summary>
     public DbSet<Award> Awards => Set<Award>();
 
+    /// <summary>The owner's personal details (one row): name, headline, email, phones, addresses.</summary>
+    public DbSet<PersonalDetails> PersonalDetails => Set<PersonalDetails>();
+
     /// <summary>Named pictures on the website, e.g. the owner's photo.</summary>
     public DbSet<SiteImage> SiteImages => Set<SiteImage>();
 
