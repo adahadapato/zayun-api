@@ -25,4 +25,7 @@ public static class CacheTags
 
     /// <summary>GET /api/awards.</summary>
     public const string Awards = "awards";
+
+    /// <summary>GET /api/profiles.</summary>
+    public const string Profiles = "profiles";
 }

@@ -13,6 +13,19 @@ internal sealed class StarterData
     public List<StarterTextGroup> SkillGroups { get; set; } = [];
     public List<string> CoreExpertise { get; set; } = [];
     public List<StarterAward> Awards { get; set; } = [];
+    public List<StarterProfile> Profiles { get; set; } = [];
+}
+
+/// <summary>One online profile.</summary>
+internal sealed class StarterProfile
+{
+    public ProfilePlatform Platform { get; set; }
+    public string Name { get; set; } = string.Empty;
+    public string Url { get; set; } = string.Empty;
+    public string? Label { get; set; }
+    public bool ShowInFooter { get; set; }
+    public bool ShowOnContact { get; set; }
+    public bool ShowOnResearch { get; set; }
 }
 
 /// <summary>One award; <see cref="Image"/> (optional) is relative to the images folder.</summary>

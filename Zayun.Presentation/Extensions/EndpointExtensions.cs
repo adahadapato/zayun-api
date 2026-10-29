@@ -5,6 +5,7 @@ using Zayun.Presentation.Endpoints.Dashboard;
 using Zayun.Presentation.Endpoints.Documents;
 using Zayun.Presentation.Endpoints.Experience;
 using Zayun.Presentation.Endpoints.Presentations;
+using Zayun.Presentation.Endpoints.Profiles;
 using Zayun.Presentation.Endpoints.Projects;
 using Zayun.Presentation.Endpoints.Publications;
 using Zayun.Presentation.Endpoints.Skills;
@@ -31,6 +32,7 @@ public static class EndpointExtensions
         api.MapSkillEndpoints();             // /api/skills          + /api/admin/skills
         api.MapAwardEndpoints();             // /api/awards          + /api/admin/awards
         api.MapTagEndpoints();               //                        /api/admin/tags
+        api.MapProfileEndpoints();           // /api/profiles        + /api/admin/profiles
         api.MapContactEndpoints();           // /api/contact         + /api/admin/contact-messages
         api.MapDashboardEndpoints();         //                        /api/admin/overview
         api.MapDocumentEndpoints();          //                        /api/admin/documents

@@ -527,5 +527,25 @@
       "description": "Most Hardworking, Dedicated and Committed Staff of the Year - ICT Department, National Examinations Council (NECO).",
       "isFeatured": true
     }
+  ],
+  "profiles": [
+    {
+      "platform": "LinkedIn",
+      "name": "LinkedIn",
+      "url": "https://www.linkedin.com/in/enobong-adahada-2831b53ab",
+      "label": "Enobong Adahada",
+      "showInFooter": true,
+      "showOnContact": true,
+      "showOnResearch": false
+    },
+    {
+      "platform": "GitHub",
+      "name": "GitHub",
+      "url": "https://github.com/adahadapato/",
+      "label": "adahadapato",
+      "showInFooter": true,
+      "showOnContact": true,
+      "showOnResearch": false
+    }
   ]
 }

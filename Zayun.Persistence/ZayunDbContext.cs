@@ -46,6 +46,9 @@ public sealed class ZayunDbContext(DbContextOptions<ZayunDbContext> options)
     /// <summary>Awards and recognition (with their picture).</summary>
     public DbSet<Award> Awards => Set<Award>();
 
+    /// <summary>Online profiles (ORCID, ResearchGate, LinkedIn…).</summary>
+    public DbSet<Profile> Profiles => Set<Profile>();
+
     /// <summary>The shared tag list (project tags, experience and skill-group skills).</summary>
     public DbSet<Tag> Tags => Set<Tag>();
 

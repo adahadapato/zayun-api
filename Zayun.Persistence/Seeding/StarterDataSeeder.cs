@@ -11,7 +11,8 @@ namespace Zayun.Persistence.Seeding;
 
 /// <summary>
 /// Fills an empty database with the website's starter content from <c>starter-data.json</c>: projects (with
-/// pictures), publications, presentations (with pictures), experience areas, skill groups, core expertise and awards.
+/// pictures), publications, presentations (with pictures), experience areas, skill groups, core expertise, awards and
+/// online profiles.
 /// </summary>
 /// <remarks>
 /// <para><b>Only when <c>SeedData:StarterDataEnabled</c> is true.</b></para>
@@ -60,6 +61,7 @@ internal static class StarterDataSeeder
         await SeedSkillGroupsAsync(context, data, logger, cancellationToken);
         await SeedCoreExpertiseAsync(context, data, logger, cancellationToken);
         await SeedAwardsAsync(context, data, pictures, logger, cancellationToken);
+        await SeedProfilesAsync(context, data, logger, cancellationToken);
     }
 
     // ───────────────────────────── Blocks ─────────────────────────────
@@ -173,6 +175,24 @@ internal static class StarterDataSeeder
 
         await context.SaveChangesAsync(ct);
         logger.LogInformation("Seeded {Count} awards", data.Awards.Count);
+    }
+
+    private static async Task SeedProfilesAsync(ZayunDbContext context, StarterData data, ILogger logger,
+                                                CancellationToken ct)
+    {
+        if (data.Profiles.Count == 0 || await context.Profiles.IgnoreQueryFilters().AnyAsync(ct)) return;
+
+        for (var i = 0; i < data.Profiles.Count; i++)
+        {
+            var p = data.Profiles[i];
+            context.Profiles.Add(Check($"profile '{p.Name}'", () => Profile.Create(
+                new ProfileDetails(p.Platform, p.Name, p.Url, p.Label, p.ShowInFooter, p.ShowOnContact, p.ShowOnResearch),
+                displayOrder: i,
+                isPublished: true)));
+        }
+
+        await context.SaveChangesAsync(ct);
+        logger.LogInformation("Seeded {Count} profiles", data.Profiles.Count);
     }
 
     private static async Task SeedExperienceAsync(ZayunDbContext context, StarterData data, ILogger logger,
