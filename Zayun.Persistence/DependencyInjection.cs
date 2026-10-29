@@ -122,8 +122,9 @@ public static class DependencyInjection
         services.AddScoped<ISkillGroupRepository, SkillGroupRepository>();
         services.AddScoped<ICoreExpertiseRepository, CoreExpertiseRepository>();
 
-        // 5b. Inbox
+        // 5b. Inbox and private documents
         services.AddScoped<IContactMessageRepository, ContactMessageRepository>();
+        services.AddScoped<IDocumentRepository, DocumentRepository>();
 
         // 5c. Sign-in (not a Domain aggregate; used by Infrastructure's Identity services)
         services.AddScoped<IRefreshTokenRepository, RefreshTokenRepository>();

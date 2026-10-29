@@ -43,6 +43,11 @@ public sealed class ZayunDbContext(DbContextOptions<ZayunDbContext> options)
     /// <summary>The core expertise list.</summary>
     public DbSet<CoreExpertise> CoreExpertise => Set<CoreExpertise>();
 
+    // ---------- Private ----------
+
+    /// <summary>The owner's private documents (admin only).</summary>
+    public DbSet<Document> Documents => Set<Document>();
+
     // ---------- Inbox and sign-in ----------
 
     /// <summary>Messages from the Contact form.</summary>

@@ -1,10 +1,11 @@
+using System.ComponentModel.DataAnnotations;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Zayun.Domain.Interfaces;
 
 namespace Zayun.Infrastructure.Settings.Storage;
 
-/// <summary>Registers file storage (a folder under the web root).</summary>
+/// <summary>Registers file storage: pictures under the web root, private documents outside it.</summary>
 internal static class StorageSetup
 {
     /// <summary>Adds file storage.</summary>
@@ -15,12 +16,20 @@ internal static class StorageSetup
     {
         services.AddOptions<StorageSettings>()
                 .Bind(configuration.GetSection(StorageSettings.SectionName))
-                .Validate(s => !string.IsNullOrWhiteSpace(s.Local?.PublicRootPath),
-                          "Storage:Local:PublicRootPath is required (e.g. \"wwwroot/uploads\").")
+                .Validate(s => IsValid(s.Local),
+                          "Storage:Local needs PublicRootPath, PrivateRootPath, PrivateDownloadPath (e.g. \"/private-files\") " +
+                          $"and a SigningKey of at least {LocalStorageSettings.MinSigningKeyLength} characters " +
+                          "(set the key in User Secrets).")
                 .ValidateOnStart();
 
         services.AddSingleton<LocalStoragePaths>();
+        services.AddSingleton<PrivateFileLinks>();
         services.AddSingleton<IFileStorage, LocalFileStorage>();
+        services.AddSingleton<IPrivateFileStorage, LocalPrivateFileStorage>();
         return services;
     }
+
+    private static bool IsValid(LocalStorageSettings? local) =>
+        local is not null &&
+        Validator.TryValidateObject(local, new ValidationContext(local), null, validateAllProperties: true);
 }

@@ -48,7 +48,9 @@ Production base address: **`https://api.zayun.net`** · local: **`https://localh
 - Add, edit, delete, publish / unpublish (drafts) and drag-to-reorder every kind of content.
 - Upload project and presentation pictures: they're resized, converted to **WebP** and given a thumbnail.
 - The Contact inbox: New / Replied / Closed with a private note.
-- A dashboard with the numbers (content totals, published, new messages).
+- **Private documents** (CV, certificates, transcripts…): PDF, Word, JPEG or PNG, stored outside the website's
+  folders and opened only through signed links that expire after 5 minutes.
+- A dashboard with the numbers (content totals, published, new messages, documents).
 
 On first start the database is filled with **exactly what zayun.net showed before the API** (11 projects,
 2 publications, 3 presentations, 4 experience areas, 5 skill groups, 8 core expertise items, 17 pictures).
@@ -218,14 +220,20 @@ cd Zayun.Presentation
 
 dotnet user-secrets set "ConnectionStrings:DefaultConnection" "Server=(localdb)\\MSSQLLocalDB;Database=Zayun;Trusted_Connection=True;TrustServerCertificate=True"
 dotnet user-secrets set "Jwt:Key"                "<at least 32 random characters>"
+dotnet user-secrets set "Storage:Local:SigningKey" "<another 32+ random characters, different from Jwt:Key>"
 dotnet user-secrets set "SeedData:AdminPassword" "<password for the first admin: 10+ chars, upper, lower, digit>"
 
 # optional (only when Email:Enabled is true)
 dotnet user-secrets set "Email:Password"         "<SMTP password>"
 ```
 
-A quick way to make a random key: `openssl rand -base64 48` (or PowerShell:
-`[Convert]::ToBase64String((1..48 | % { Get-Random -Max 256 }))`).
+A random 64-character key in Windows PowerShell (run it once per key):
+
+```powershell
+$bytes = New-Object byte[] 48
+[System.Security.Cryptography.RandomNumberGenerator]::Create().GetBytes($bytes)
+[Convert]::ToBase64String($bytes)
+```
 
 ### 5.4 Create the first migration (once)
 
@@ -273,7 +281,7 @@ All keys are documented in `Zayun.Domain/Constants/AppSettings.cs`. Settings are
 | `Identity` | password rules (10+ chars, digit, upper, lower), lockout (5 tries → 15 min) | — |
 | `Email` | `Enabled`, `FromName`, `FromAddress`, `OwnerInbox` (where Contact messages go), SMTP `Host`/`Port`/`Security`/`Username`/`Password` | `Password` |
 | `Cors` | `AllowedOrigins` (the website) | — |
-| `Storage` | `Local:PublicRootPath` (`wwwroot/uploads`) | — |
+| `Storage` | `Local:PublicRootPath` (`wwwroot/uploads`), `PrivateRootPath` (`App_Data/private-documents`, must be outside wwwroot), `PrivateDownloadPath` (`/private-files`), `SigningKey`, `PrivateLinkMinutes` (5) | `SigningKey` |
 | `Images` | `MaxUploadBytes` (15 MB), `MaxSide` (1920), `ThumbnailMaxSide` (640), `WebpQuality` (82) | — |
 | `SeedData` | first admin (`AdminEmail`, `AdminPassword`, names), starter data switch and paths | `AdminPassword` |
 | `OpenApi` | `Enabled` (off in production), title, paths, contact | — |
@@ -312,6 +320,7 @@ dotnet ef database update     --project Zayun.Persistence --startup-project Zayu
 | `ExperienceAreas`, `SkillGroups` | text + skills (JSON column) |
 | `CoreExpertise` | the short list on the Skills page |
 | `ContactMessages` | the inbox |
+| `Documents` | private documents (file details as columns; the files are in `App_Data/private-documents`) |
 | `RefreshTokens` + `AspNet*` | sign-in (Identity) |
 
 ### 7.2 Seed data
@@ -344,7 +353,8 @@ restart.
 - **Lockout** after 5 wrong passwords, for 15 minutes; `POST /api/auth/login` is also rate limited (10 per 5 minutes).
 - **CORS**: only the origins in `Cors:AllowedOrigins`.
 - **Contact form**: 5 messages per 10 minutes per connection, plus a hidden `website` field that catches robots.
-- **Uploads** are re-encoded (WebP) and stripped of metadata, so original files are never served.
+- **Picture uploads** are re-encoded (WebP) and stripped of metadata, so original files are never served.
+- **Private documents** never sit under wwwroot; only signed links that expire after 5 minutes can download them.
 
 ---
 
@@ -380,12 +390,15 @@ Development). 🛡 = Admin role.
 | Experience | GET/POST `/experience`; PUT `/experience/{id}` · `/{id}/published` · `/order`; DELETE `/experience/{id}` |
 | Skills | GET `/skills`; POST `/skills/groups` · `/skills/expertise`; PUT `/skills/groups/{id}` · `/{id}/published` · `/order` (same for `/skills/expertise`); DELETE `/skills/groups/{id}` · `/skills/expertise/{id}` |
 | Inbox | GET `/contact-messages?status=&page=&pageSize=` · `/contact-messages/{id}`; PUT `/{id}/status`; DELETE `/{id}` |
+| Documents | GET `/documents?category=` · `/documents/{id}/link` (a 5-minute download link); POST `/documents` (multipart: `file`, `title`, `category`, `notes`); PUT `/documents/{id}` · `/{id}/file` (multipart: `file`); DELETE `/documents/{id}` |
 </details>
 
 Bodies for the shared actions: **publish** `{ "isPublished": true }` · **reorder** `{ "ids": ["…", "…"] }` (every
 item's Id, drafts included, in the new order).
 
-Plus `GET /health` (outside `/api`, not in Swagger) and the pictures at `/uploads/…`.
+Plus `GET /health` (outside `/api`, not in Swagger), the pictures at `/uploads/…` and signed document downloads at
+`/private-files/…?name=&expires=&sig=` (no sign-in: the signature is the permission; a wrong or expired link is a
+404).
 
 ---
 
@@ -434,10 +447,15 @@ changes the same content carries `[InvalidatesCache(tag)]`, so edits show on the
   `{ApiBaseUrl}/uploads/…` with a one-year cache (file names never repeat). Magick.NET fixes rotation, strips
   metadata, shrinks to 1920 px (never enlarges), makes a 640 px thumbnail and writes both as WebP; transparency is
   kept. JPEG, PNG, WebP and HEIC are accepted, up to 15 MB.
+- **Private documents** are stored exactly as uploaded under `App_Data/private-documents` (outside wwwroot, hidden
+  by web.config). The type is read from the file's contents, never its name; a `.docx` must really contain a Word
+  document. A download link is signed (HMAC-SHA256) over the path, the download name and the expiry, so none of
+  them can be changed, and it stops working after `Storage:Local:PrivateLinkMinutes`. Deleting a document removes
+  its file too.
 - **Email** (`IEmailSender`): SMTP through MailKit when `Email:Enabled` is true; otherwise only logged. A Contact
   message is always saved first; a failed email is logged and never loses it.
 
-> The `wwwroot/uploads`, `App_Data` and `logs` folders hold **runtime data** and must survive every deployment
+> The `wwwroot/uploads`, `App_Data` (private documents) and `logs` folders hold **runtime data** and must survive every deployment
 > (the pipeline is set up to keep them).
 
 ---
@@ -452,7 +470,7 @@ manual runs allowed):
    works in the default 32-bit pool).
 3. Upload the build as an artifact **before** any secrets are added.
 4. Write the secrets into the published `appsettings.Production.json` and remove `appsettings.Development.json`.
-5. Deploy to **SmarterASP.NET** with MSDeploy, keeping `wwwroot/uploads`, `App_Data` and `logs`.
+5. Deploy to **SmarterASP.NET** with MSDeploy, keeping `wwwroot/uploads`, `App_Data` (private documents) and `logs`.
 6. If the `API_BASE_URL` repository variable is set, wait for `/health` to answer.
 
 > The workflow expects `Zayun.sln` at the **root of the repository**. If the solution sits in an `Api/` folder of a
@@ -465,6 +483,7 @@ manual runs allowed):
 |---|---|
 | `DEFAULT_CONNECTION` | `ConnectionStrings:DefaultConnection` |
 | `JWT_KEY` | `Jwt:Key` (32+ characters) |
+| `STORAGE_SIGNING_KEY` | `Storage:Local:SigningKey` (32+ characters, different from the JWT key) |
 | `SEED_ADMIN_PASSWORD` | `SeedData:AdminPassword` |
 | `EMAIL_PASSWORD` *(optional)* | `Email:Password` |
 | `WEBSITE_NAME`, `SERVER_COMPUTER_NAME`, `SERVER_USERNAME`, `SERVER_PASSWORD` | SmarterASP.NET deployment |
@@ -500,6 +519,8 @@ start-up.
 | Start-up fails at step "1: migrations", or tables are missing | the first migration hasn't been added yet (§5.4) |
 | `PendingModelChangesWarning` on start-up | the model changed but no migration was added (§7.1) |
 | Start-up fails with "… must be set" / options validation | a required setting or secret is missing (§6) |
+| "Storage:Local needs … SigningKey" on start-up | set `Storage:Local:SigningKey` (32+ characters) |
+| A document link says 404 | it expired (5 minutes): ask for a new one with `/api/admin/documents/{id}/link` |
 | "Admin seeding skipped" in the log | `SeedData:AdminPassword` isn't set |
 | Browser: CORS error | add the website's origin to `Cors:AllowedOrigins` |
 | Pictures don't load on the website | `AppSettings:ApiBaseUrl` must be the API's real public address |

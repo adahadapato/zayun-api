@@ -17,6 +17,7 @@ public sealed record GetAdminOverviewQuery : IRequest<Result<AdminOverviewDto>>;
 /// <param name="SkillGroups">Skill groups.</param>
 /// <param name="CoreExpertise">Core expertise items.</param>
 /// <param name="NewMessages">Contact messages not looked at yet.</param>
+/// <param name="Documents">Private documents stored.</param>
 public sealed record AdminOverviewDto(
     ContentCountDto Projects,
     ContentCountDto Publications,
@@ -24,7 +25,8 @@ public sealed record AdminOverviewDto(
     ContentCountDto ExperienceAreas,
     ContentCountDto SkillGroups,
     ContentCountDto CoreExpertise,
-    int NewMessages);
+    int NewMessages,
+    int Documents);
 
 /// <summary>How many items, and how many of them the website shows.</summary>
 /// <param name="Total">All items, drafts included.</param>
@@ -40,7 +42,8 @@ public sealed class GetAdminOverviewQueryHandler(
     IExperienceAreaRepository experience,
     ISkillGroupRepository skillGroups,
     ICoreExpertiseRepository expertise,
-    IContactMessageRepository messages)
+    IContactMessageRepository messages,
+    IDocumentRepository documents)
     : IRequestHandler<GetAdminOverviewQuery, Result<AdminOverviewDto>>
 {
     /// <inheritdoc />
@@ -54,9 +57,11 @@ public sealed class GetAdminOverviewQueryHandler(
         var groupCount = Count(await skillGroups.GetListAsync(publishedOnly: false, ct));
         var expertiseCount = Count(await expertise.GetListAsync(publishedOnly: false, ct));
         var byStatus = await messages.CountByStatusAsync(ct);
+        var documentCount = await documents.CountAsync(ct);
 
         return new AdminOverviewDto(projectCount, publicationCount, presentationCount, experienceCount, groupCount,
-                                    expertiseCount, byStatus.GetValueOrDefault(ContactMessageStatus.New));
+                                    expertiseCount, byStatus.GetValueOrDefault(ContactMessageStatus.New),
+                                    documentCount);
     }
 
     private static ContentCountDto Count<T>(IReadOnlyList<T> items) where T : ContentEntity =>

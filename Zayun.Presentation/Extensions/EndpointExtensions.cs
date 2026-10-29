@@ -1,6 +1,7 @@
 using Zayun.Presentation.Endpoints.Auth;
 using Zayun.Presentation.Endpoints.Contact;
 using Zayun.Presentation.Endpoints.Dashboard;
+using Zayun.Presentation.Endpoints.Documents;
 using Zayun.Presentation.Endpoints.Experience;
 using Zayun.Presentation.Endpoints.Presentations;
 using Zayun.Presentation.Endpoints.Projects;
@@ -12,7 +13,7 @@ namespace Zayun.Presentation.Extensions;
 /// <summary>Every route of the API, in one place.</summary>
 public static class EndpointExtensions
 {
-    /// <summary>Maps all endpoint groups under <c>/api</c>, plus <c>/health</c>.</summary>
+    /// <summary>Maps all endpoint groups under <c>/api</c>, plus <c>/private-files</c> and <c>/health</c>.</summary>
     /// <param name="app">The web application.</param>
     /// <returns>The same application, for chaining.</returns>
     public static WebApplication MapZayunEndpoints(this WebApplication app)
@@ -28,8 +29,12 @@ public static class EndpointExtensions
         api.MapSkillEndpoints();             // /api/skills          + /api/admin/skills
         api.MapContactEndpoints();           // /api/contact         + /api/admin/contact-messages
         api.MapDashboardEndpoints();         //                        /api/admin/overview
+        api.MapDocumentEndpoints();          //                        /api/admin/documents
 
-        // 2. Health (not in Swagger)
+        // 2. Private documents through signed links, e.g. /private-files/…?name=…&expires=…&sig=… (not in Swagger)
+        app.MapPrivateFiles();
+
+        // 3. Health (not in Swagger)
         app.MapGet("/health", () => Results.Ok(new { status = "healthy", timestamp = DateTime.UtcNow }))
            .ExcludeFromDescription();
 

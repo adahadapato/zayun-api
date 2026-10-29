@@ -171,8 +171,17 @@ public static class AppSettings
             /// <summary>Folder for public files, relative to the web root (served at <c>/uploads</c>).</summary>
             public const string PublicRootPath = "Storage:Local:PublicRootPath";
 
-            /// <summary>The URL path public files are served from.</summary>
-            public const string PublicRequestPath = "Storage:Local:PublicRequestPath";
+            /// <summary>Folder for PRIVATE documents, relative to the content root and outside the web root.</summary>
+            public const string PrivateRootPath = "Storage:Local:PrivateRootPath";
+
+            /// <summary>The URL path signed download links use, e.g. "/private-files".</summary>
+            public const string PrivateDownloadPath = "Storage:Local:PrivateDownloadPath";
+
+            /// <summary>Key that signs download links (SECRET, 32+ characters, not the JWT key).</summary>
+            public const string SigningKey = "Storage:Local:SigningKey";
+
+            /// <summary>How long a download link works, in minutes.</summary>
+            public const string PrivateLinkMinutes = "Storage:Local:PrivateLinkMinutes";
         }
     }
 
