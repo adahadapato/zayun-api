@@ -91,6 +91,30 @@ public static class TextRules
         return clean;
     }
 
+    /// <summary>
+    /// A copy of a label list with one name swapped for another (a tag was renamed or merged), keeping the order and
+    /// removing the duplicate when the new name is already there. Names are compared by tag key.
+    /// </summary>
+    /// <param name="labels">The current list.</param>
+    /// <param name="oldName">The name to replace.</param>
+    /// <param name="newName">The name to use instead.</param>
+    /// <returns>The new list, or null when the old name isn't in it.</returns>
+    public static List<string>? ReplaceLabel(IReadOnlyList<string> labels, string oldName, string newName)
+    {
+        var oldKey = TagNames.Key(oldName);
+        if (!labels.Any(l => TagNames.Key(l) == oldKey)) return null;
+
+        var newKey = TagNames.Key(newName);
+        var result = new List<string>(labels.Count);
+        foreach (var label in labels)
+        {
+            var key = TagNames.Key(label);
+            var name = key == oldKey ? newName : label;
+            if (result.All(r => TagNames.Key(r) != (key == oldKey ? newKey : key))) result.Add(name);
+        }
+        return result;
+    }
+
     /// <summary>True for an absolute http or https address.</summary>
     /// <param name="value">The text to check.</param>
     public static bool IsWebUrl(string? value) =>

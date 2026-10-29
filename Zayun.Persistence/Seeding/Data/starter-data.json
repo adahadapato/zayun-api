@@ -57,7 +57,7 @@
         "REST API",
         "CQRS",
         "MediatR",
-        "EF Core",
+        "Entity Framework Core",
         "Admin Portal",
         "CI/CD"
       ],
@@ -251,7 +251,7 @@
         "REST API",
         "Enterprise Systems",
         "Process Automation",
-        "MS SQL"
+        "SQL Server"
       ],
       "isPrivateRepo": true,
       "images": []
@@ -424,7 +424,7 @@
         "C#",
         ".NET",
         "ASP.NET Core",
-        "REST APIs",
+        "REST API",
         "React",
         "TypeScript",
         ".NET MAUI",

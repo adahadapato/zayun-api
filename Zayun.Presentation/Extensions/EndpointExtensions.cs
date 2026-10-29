@@ -8,6 +8,7 @@ using Zayun.Presentation.Endpoints.Presentations;
 using Zayun.Presentation.Endpoints.Projects;
 using Zayun.Presentation.Endpoints.Publications;
 using Zayun.Presentation.Endpoints.Skills;
+using Zayun.Presentation.Endpoints.Tags;
 
 namespace Zayun.Presentation.Extensions;
 
@@ -29,6 +30,7 @@ public static class EndpointExtensions
         api.MapExperienceEndpoints();        // /api/experience      + /api/admin/experience
         api.MapSkillEndpoints();             // /api/skills          + /api/admin/skills
         api.MapAwardEndpoints();             // /api/awards          + /api/admin/awards
+        api.MapTagEndpoints();               //                        /api/admin/tags
         api.MapContactEndpoints();           // /api/contact         + /api/admin/contact-messages
         api.MapDashboardEndpoints();         //                        /api/admin/overview
         api.MapDocumentEndpoints();          //                        /api/admin/documents

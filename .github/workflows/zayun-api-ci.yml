@@ -110,6 +110,7 @@ jobs:
       # Optional GitHub repository secret:
       #
       # EMAIL_PASSWORD         Email:Password (needed once Email:Enabled is true)
+      # ANTHROPIC_API_KEY      Ai:ApiKey (the AI tag check; without it only the built-in rules are used)
       #
       # Non-sensitive production settings remain in
       # appsettings.Production.json (committed, with "" placeholders).
@@ -130,6 +131,7 @@ jobs:
           STORAGE_SIGNING_KEY: ${{ secrets.STORAGE_SIGNING_KEY }}
           SEED_ADMIN_PASSWORD: ${{ secrets.SEED_ADMIN_PASSWORD }}
           EMAIL_PASSWORD: ${{ secrets.EMAIL_PASSWORD }}
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
         run: |
           $configPath = ".\publish\appsettings.Production.json"
 
@@ -223,6 +225,21 @@ jobs:
 
           if (-not [string]::IsNullOrWhiteSpace($env:EMAIL_PASSWORD)) {
               $config.Email.Password = $env:EMAIL_PASSWORD
+          }
+
+          # --------------------------------------------------------
+          # AI tag check (optional: without a key only the built-in rules are used)
+          # --------------------------------------------------------
+
+          if (-not [string]::IsNullOrWhiteSpace($env:ANTHROPIC_API_KEY)) {
+              if ($null -eq $config.Ai) {
+                  $config | Add-Member -NotePropertyName Ai -NotePropertyValue ([pscustomobject]@{ ApiKey = "" })
+              }
+              $config.Ai.ApiKey = $env:ANTHROPIC_API_KEY
+              Write-Host "AI tag check key configured."
+          }
+          else {
+              Write-Host "ANTHROPIC_API_KEY not set: the AI tag check is off (built-in tag rules only)."
           }
 
           # --------------------------------------------------------

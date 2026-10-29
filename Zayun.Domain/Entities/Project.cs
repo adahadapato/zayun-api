@@ -173,6 +173,18 @@ public class Project : ContentEntity
         return Result.Success();
     }
 
+    /// <summary>Swaps one tag name for another (the tag was renamed or merged).</summary>
+    /// <param name="oldName">The name used now.</param>
+    /// <param name="newName">The name to use instead.</param>
+    /// <returns>True when the project used the old name.</returns>
+    public bool ReplaceTag(string oldName, string newName)
+    {
+        var replaced = TextRules.ReplaceLabel(Tags, oldName, newName);
+        if (replaced is null) return false;
+        Tags = replaced;
+        return true;
+    }
+
     /// <summary>
     /// Swaps a picture's file for a new one, keeping its place, alt text, caption and kind (Admin → Edit picture →
     /// Change picture).

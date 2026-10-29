@@ -1,6 +1,7 @@
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Zayun.Application;
+using Zayun.Infrastructure.Settings.Ai;
 using Zayun.Infrastructure.Settings.Application;
 using Zayun.Infrastructure.Settings.Email;
 using Zayun.Infrastructure.Settings.Identity;
@@ -12,7 +13,7 @@ namespace Zayun.Infrastructure;
 
 /// <summary>
 /// Registers Application, Persistence and everything Infrastructure provides: settings, email, file storage, the
-/// picture pipeline and sign-in.
+/// picture pipeline, sign-in and the AI tag check.
 /// </summary>
 /// <remarks>Called once from Presentation's DependencyInjection.</remarks>
 public static class DependencyInjection
@@ -31,6 +32,7 @@ public static class DependencyInjection
         services.AddStorage(configuration);
         services.AddImages(configuration);
         services.AddZayunIdentity(configuration);
+        services.AddAi(configuration);             // the AI tag check (Claude), or the built-in rules only
 
         return services;
     }

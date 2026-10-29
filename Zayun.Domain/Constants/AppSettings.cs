@@ -233,6 +233,29 @@ public static class AppSettings
         public const string Password = "Email:Password";
     }
 
+    // ==================== AI ====================
+
+    /// <summary>The AI tag check (Claude). Off, or without a key, only the built-in tag rules are used.</summary>
+    public static class Ai
+    {
+        public const string Section = "Ai";
+
+        /// <summary>Use the AI tag check.</summary>
+        public const string Enabled = "Ai:Enabled";
+
+        /// <summary>The Anthropic API key (SECRET: User Secrets locally, the CI pipeline in production).</summary>
+        public const string ApiKey = "Ai:ApiKey";
+
+        /// <summary>The Claude model, e.g. "claude-haiku-5-5" (fast and cheap is plenty for tags).</summary>
+        public const string Model = "Ai:Model";
+
+        /// <summary>The API's address.</summary>
+        public const string BaseUrl = "Ai:BaseUrl";
+
+        /// <summary>How long to wait for an answer, in seconds, before treating the name as new.</summary>
+        public const string TimeoutSeconds = "Ai:TimeoutSeconds";
+    }
+
     // ==================== Hosting ====================
 
     public static class Hosting

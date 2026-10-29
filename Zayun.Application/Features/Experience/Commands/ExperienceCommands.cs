@@ -1,5 +1,6 @@
 using MediatR;
 using Zayun.Application.Common.Caching;
+using Zayun.Application.Common.Tags;
 using Zayun.Application.Common.Content;
 using Zayun.Application.Features.Experience.Dtos;
 using Zayun.Domain.Entities;
@@ -19,13 +20,14 @@ public sealed record CreateExperienceAreaCommand(string Title, string Descriptio
                                                  bool IsPublished) : IRequest<Result<ExperienceAreaDto>>;
 
 /// <summary>Handles <see cref="CreateExperienceAreaCommand"/>.</summary>
-public sealed class CreateExperienceAreaCommandHandler(IExperienceAreaRepository areas, IUnitOfWork unitOfWork)
+public sealed class CreateExperienceAreaCommandHandler(IExperienceAreaRepository areas, IUnitOfWork unitOfWork,
+                                                       TagResolver tags)
     : IRequestHandler<CreateExperienceAreaCommand, Result<ExperienceAreaDto>>
 {
     /// <inheritdoc />
     public async Task<Result<ExperienceAreaDto>> Handle(CreateExperienceAreaCommand c, CancellationToken ct)
     {
-        var area = ExperienceArea.Create(c.Title, c.Description, c.Skills ?? [],
+        var area = ExperienceArea.Create(c.Title, c.Description, await tags.ResolveAsync(c.Skills, ct),
                                          await areas.GetNextDisplayOrderAsync(ct), c.IsPublished);
         areas.Add(area);
         await unitOfWork.SaveChangesAsync(ct);
@@ -43,7 +45,8 @@ public sealed record UpdateExperienceAreaCommand(Guid Id, string Title, string D
                                                  IReadOnlyList<string>? Skills) : IRequest<Result<ExperienceAreaDto>>;
 
 /// <summary>Handles <see cref="UpdateExperienceAreaCommand"/>.</summary>
-public sealed class UpdateExperienceAreaCommandHandler(IExperienceAreaRepository areas, IUnitOfWork unitOfWork)
+public sealed class UpdateExperienceAreaCommandHandler(IExperienceAreaRepository areas, IUnitOfWork unitOfWork,
+                                                       TagResolver tags)
     : IRequestHandler<UpdateExperienceAreaCommand, Result<ExperienceAreaDto>>
 {
     /// <inheritdoc />
@@ -52,7 +55,7 @@ public sealed class UpdateExperienceAreaCommandHandler(IExperienceAreaRepository
         var area = await areas.GetByIdAsync(c.Id, ct);
         if (area is null) return ExperienceErrors.NotFound;
 
-        area.Update(c.Title, c.Description, c.Skills ?? []);
+        area.Update(c.Title, c.Description, await tags.ResolveAsync(c.Skills, ct));
         await unitOfWork.SaveChangesAsync(ct);
         return ExperienceAreaDto.From(area);
     }

@@ -1,5 +1,6 @@
 using MediatR;
 using Zayun.Application.Common.Caching;
+using Zayun.Application.Common.Tags;
 using Zayun.Application.Common.Content;
 using Zayun.Application.Features.Skills.Dtos;
 using Zayun.Domain.Entities;
@@ -19,13 +20,14 @@ public sealed record CreateSkillGroupCommand(string Title, string Description, I
                                                  bool IsPublished) : IRequest<Result<SkillGroupDto>>;
 
 /// <summary>Handles <see cref="CreateSkillGroupCommand"/>.</summary>
-public sealed class CreateSkillGroupCommandHandler(ISkillGroupRepository groups, IUnitOfWork unitOfWork)
+public sealed class CreateSkillGroupCommandHandler(ISkillGroupRepository groups, IUnitOfWork unitOfWork,
+                                                   TagResolver tags)
     : IRequestHandler<CreateSkillGroupCommand, Result<SkillGroupDto>>
 {
     /// <inheritdoc />
     public async Task<Result<SkillGroupDto>> Handle(CreateSkillGroupCommand c, CancellationToken ct)
     {
-        var group = SkillGroup.Create(c.Title, c.Description, c.Skills ?? [],
+        var group = SkillGroup.Create(c.Title, c.Description, await tags.ResolveAsync(c.Skills, ct),
                                          await groups.GetNextDisplayOrderAsync(ct), c.IsPublished);
         groups.Add(group);
         await unitOfWork.SaveChangesAsync(ct);
@@ -43,7 +45,8 @@ public sealed record UpdateSkillGroupCommand(Guid Id, string Title, string Descr
                                                  IReadOnlyList<string>? Skills) : IRequest<Result<SkillGroupDto>>;
 
 /// <summary>Handles <see cref="UpdateSkillGroupCommand"/>.</summary>
-public sealed class UpdateSkillGroupCommandHandler(ISkillGroupRepository groups, IUnitOfWork unitOfWork)
+public sealed class UpdateSkillGroupCommandHandler(ISkillGroupRepository groups, IUnitOfWork unitOfWork,
+                                                   TagResolver tags)
     : IRequestHandler<UpdateSkillGroupCommand, Result<SkillGroupDto>>
 {
     /// <inheritdoc />
@@ -52,7 +55,7 @@ public sealed class UpdateSkillGroupCommandHandler(ISkillGroupRepository groups,
         var group = await groups.GetByIdAsync(c.Id, ct);
         if (group is null) return SkillErrors.GroupNotFound;
 
-        group.Update(c.Title, c.Description, c.Skills ?? []);
+        group.Update(c.Title, c.Description, await tags.ResolveAsync(c.Skills, ct));
         await unitOfWork.SaveChangesAsync(ct);
         return SkillGroupDto.From(group);
     }

@@ -1,5 +1,6 @@
 using MediatR;
 using Zayun.Application.Common.Caching;
+using Zayun.Application.Common.Tags;
 using Zayun.Application.Features.Projects.Dtos;
 using Zayun.Domain.Entities;
 using Zayun.Domain.Enums;
@@ -40,7 +41,7 @@ public sealed record CreateProjectCommand(
 
 /// <summary>Handles <see cref="CreateProjectCommand"/>.</summary>
 public sealed class CreateProjectCommandHandler(IProjectRepository projects, IUnitOfWork unitOfWork,
-                                                IFileStorage storage)
+                                                IFileStorage storage, TagResolver tags)
     : IRequestHandler<CreateProjectCommand, Result<ProjectDto>>
 {
     /// <inheritdoc />
@@ -53,7 +54,7 @@ public sealed class CreateProjectCommandHandler(IProjectRepository projects, IUn
         var project = Project.Create(
             new ProjectDetails(command.Title, command.Subtitle, command.Description, command.Category, command.Label,
                                command.VisualLabel, command.GithubUrl, command.LiveUrl, command.IsPrivateRepo,
-                               command.Tags ?? []),
+                               await tags.ResolveAsync(command.Tags, ct)),
             slug,
             await projects.GetNextDisplayOrderAsync(ct),
             command.IsPublished);

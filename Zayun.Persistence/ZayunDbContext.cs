@@ -46,6 +46,9 @@ public sealed class ZayunDbContext(DbContextOptions<ZayunDbContext> options)
     /// <summary>Awards and recognition (with their picture).</summary>
     public DbSet<Award> Awards => Set<Award>();
 
+    /// <summary>The shared tag list (project tags, experience and skill-group skills).</summary>
+    public DbSet<Tag> Tags => Set<Tag>();
+
     // ---------- Private ----------
 
     /// <summary>The owner's private documents (admin only).</summary>

@@ -64,4 +64,16 @@ public class SkillGroup : ContentEntity
         Description = TextRules.Required(description, DescriptionMaxLength, nameof(description));
         Skills = TextRules.Labels(skills, SkillMaxLength, MaxSkills, nameof(skills));
     }
+
+    /// <summary>Swaps one skill name for another (the tag was renamed or merged).</summary>
+    /// <param name="oldName">The name used now.</param>
+    /// <param name="newName">The name to use instead.</param>
+    /// <returns>True when the old name was in the list.</returns>
+    public bool ReplaceSkill(string oldName, string newName)
+    {
+        var replaced = TextRules.ReplaceLabel(Skills, oldName, newName);
+        if (replaced is null) return false;
+        Skills = replaced;
+        return true;
+    }
 }

@@ -26,6 +26,7 @@ Production base address: **`https://api.zayun.net`** · local: **`https://localh
 10. [Errors](#10-errors)
 11. [Caching](#11-caching)
 12. [Pictures and email](#12-pictures-and-email)
+    - [Tags and the AI tag check](#12a-tags-and-the-ai-tag-check)
 13. [Deployment (CI/CD)](#13-deployment-cicd)
 14. [Adding a feature: the checklist](#14-adding-a-feature-the-checklist)
 15. [Troubleshooting](#15-troubleshooting)
@@ -174,7 +175,7 @@ Zayun.sln
 │   ├── Common/Content/     ContentActions (publish, delete, reorder)
 │   ├── Common/Validation/  shared rules (web links, label lists, reorder lists, uploads)
 │   └── Features/<Area>/    Commands/ Queries/ Dtos/ Validators/ — Auth, Projects, Publications, Presentations,
-│                           Experience, Skills, Awards, Contact, Dashboard
+│                           Experience, Skills, Awards, Tags, Contact, Dashboard
 ├── Zayun.Persistence/
 │   ├── Configurations/     one IEntityTypeConfiguration per entity (+ EntityConfiguration, ContentEntityConfiguration)
 │   │   └── Identity/       ApplicationUser, ApplicationRole, role/admin seeders, RefreshTokenConfiguration
@@ -229,6 +230,9 @@ dotnet user-secrets set "SeedData:AdminPassword" "<password for the first admin:
 
 # optional (only when Email:Enabled is true)
 dotnet user-secrets set "Email:Password"         "<SMTP password>"
+
+# optional: the AI tag check (without it, only the built-in tag rules are used)
+dotnet user-secrets set "Ai:ApiKey"              "<Anthropic API key, sk-ant-…>"
 ```
 
 A random 64-character key in Windows PowerShell (run it once per key):
@@ -324,6 +328,7 @@ dotnet ef database update     --project Zayun.Persistence --startup-project Zayu
 | `ExperienceAreas`, `SkillGroups` | text + skills (JSON column) |
 | `CoreExpertise` | the short list on the Skills page |
 | `Awards` | awards (picture columns, all null when there is none; `IsFeatured` = also on About / Experience) |
+| `Tags` | the shared tag list: `Name` as shown, `NormalizedName` (UPPERCASE key, unique), `Aliases` (JSON) |
 | `ContactMessages` | the inbox |
 | `Documents` | private documents (file details as columns; the files are in `App_Data/private-documents`) |
 | `RefreshTokens` + `AspNet*` | sign-in (Identity) |
@@ -338,6 +343,10 @@ dotnet ef database update     --project Zayun.Persistence --startup-project Zayu
 
 Because blocks only run on empty tables, anything the admin changes or deletes is **never brought back** by a
 restart.
+
+| Step | When | What |
+|---|---|---|
+| `TagListSeeder` | the `Tags` table is empty | builds the shared tag list from the names projects, experience areas and skill groups already use, tidying them on the way ("REST APIs" → "REST API", "EF Core" → "Entity Framework Core", "MS SQL" → "SQL Server") |
 
 ---
 
@@ -396,6 +405,7 @@ Development). 🛡 = Admin role.
 | Experience | GET/POST `/experience`; PUT `/experience/{id}` · `/{id}/published` · `/order`; DELETE `/experience/{id}` |
 | Skills | GET `/skills`; POST `/skills/groups` · `/skills/expertise`; PUT `/skills/groups/{id}` · `/{id}/published` · `/order` (same for `/skills/expertise`); DELETE `/skills/groups/{id}` · `/skills/expertise/{id}` |
 | Awards | GET/POST `/awards`; PUT `/awards/{id}` · `/{id}/published` · `/{id}/image` (multipart: `file`, `altText`) · `/order`; DELETE `/awards/{id}` · `/{id}/image` |
+| Tags | GET `/tags`; POST `/tags/check` `{ name }` (Existing / New / Doubtful) · `/tags` `{ name }` · `/tags/{id}/merge` `{ intoTagId }`; PUT `/tags/{id}` `{ name }` (rename everywhere); DELETE `/tags/{id}` (only when unused) |
 | Inbox | GET `/contact-messages?status=&page=&pageSize=` · `/contact-messages/{id}`; PUT `/{id}/status`; DELETE `/{id}` |
 | Documents | GET `/documents?category=` · `/documents/{id}/link` (a 5-minute download link); POST `/documents` (multipart: `file`, `title`, `category`, `notes`); PUT `/documents/{id}` · `/{id}/file` (multipart: `file`); DELETE `/documents/{id}` |
 </details>
@@ -467,6 +477,33 @@ changes the same content carries `[InvalidatesCache(tag)]`, so edits show on the
 
 ---
 
+## 12a. Tags and the AI tag check
+
+Project tags, experience skills and skill-group skills all come from **one shared list** (`Tags`), so the same
+thing is never written two ways.
+
+- **The key.** Each tag has a name as shown ("ASP.NET Core") and an UPPERCASE key without spaces, dots, dashes or
+  underscores ("ASPNETCORE"). The key is unique: "asp.net core", "ASP NET Core" and "Asp.Net-Core" are one tag.
+- **Built-in rules** (`TagNames`, free, no AI): common synonyms and well-known spellings ("RESTful APIs" → "REST API",
+  "MS SQL" → "SQL Server", "typescript" → "TypeScript"), and singular / plural ("Transformer" → "Transformers").
+- **The AI check** (`ITagAdvisor` → `ClaudeTagAdvisor`): only for names the rules don't know, while the admin types
+  (`POST /api/admin/tags/check`). Claude says whether it means the same as an existing tag, how a new one is usually
+  spelled ("pytroch" → "PyTorch"), or that it isn't a skill at all (the admin is asked before adding it). One short
+  request with structured JSON output; only the typed name and the tag names are sent.
+- **Saving** never calls the AI: names are matched with the rules and new ones added to the list in the same save,
+  so saving is fast and works even when the AI can't be reached.
+- **Admin → Tags**: rename (everywhere it's used; the old name stays as an alias), merge two tags that mean the same,
+  delete a tag nothing uses.
+
+| Setting | Default | |
+|---|---|---|
+| `Ai:Enabled` | `true` | use the AI check when a key is set |
+| `Ai:ApiKey` | empty | **secret** (User Secrets / `ANTHROPIC_API_KEY` in GitHub). Empty = built-in rules only; the API still starts |
+| `Ai:Model` | `claude-haiku-5-5` | fast and cheap is plenty for tags |
+| `Ai:TimeoutSeconds` | `10` | after this the name is treated as new |
+
+---
+
 ## 13. Deployment (CI/CD)
 
 `.github/workflows/zayun-api-ci.yml` → **Zayun API CI/CD**, on every push to `main` (pull requests build only;
@@ -493,6 +530,7 @@ manual runs allowed):
 | `STORAGE_SIGNING_KEY` | `Storage:Local:SigningKey` (32+ characters, different from the JWT key) |
 | `SEED_ADMIN_PASSWORD` | `SeedData:AdminPassword` |
 | `EMAIL_PASSWORD` *(optional)* | `Email:Password` |
+| `ANTHROPIC_API_KEY` *(optional)* | `Ai:ApiKey` (the AI tag check) |
 | `WEBSITE_NAME`, `SERVER_COMPUTER_NAME`, `SERVER_USERNAME`, `SERVER_PASSWORD` | SmarterASP.NET deployment |
 
 **Before each deploy that changes the model:** add the migration locally (§7) and commit it; the API applies it on
