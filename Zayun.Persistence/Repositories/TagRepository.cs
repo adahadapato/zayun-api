@@ -30,8 +30,7 @@ internal sealed class TagRepository(ZayunDbContext context) : Repository<Tag>(co
 
         foreach (var chunk in wanted.Chunk(KeysPerQuery))
         {
-            var tokens = chunk.Select(Tag.SearchToken).ToList();
-            foreach (var tag in await Set.Where(AnyToken(tokens)).ToListAsync(cancellationToken))
+            foreach (var tag in await Set.Where(AnyKey(chunk)).ToListAsync(cancellationToken))
                 found.TryAdd(tag.Id, tag);
         }
 
@@ -46,7 +45,7 @@ internal sealed class TagRepository(ZayunDbContext context) : Repository<Tag>(co
         IQueryable<Tag> query = Set.AsNoTracking();
 
         var key = TagNames.Key(search);
-        if (key.Length > 0) query = query.Where(t => t.SearchKeys.Contains(key));
+        if (key.Length > 0) query = query.Where(t => t.NormalizedName.Contains(key) || t.SearchKeys.Contains(key));
 
         query = filter switch
         {
@@ -113,6 +112,31 @@ internal sealed class TagRepository(ZayunDbContext context) : Repository<Tag>(co
     public async Task<IReadOnlyList<Tag>> GetUsedAsync(CancellationToken cancellationToken = default) =>
         await Set.Where(t => t.ProjectCount + t.ExperienceAreaCount + t.SkillGroupCount > 0)
                  .ToListAsync(cancellationToken);
+
+    /// <summary>
+    /// <c>NormalizedName = 'A' OR SearchKeys LIKE '%|A|%' OR …</c> for each key: the exact key always finds the tag,
+    /// the search keys find it by an alias.
+    /// </summary>
+    private static Expression<Func<Tag, bool>> AnyKey(IReadOnlyList<string> keys)
+    {
+        var tag = Expression.Parameter(typeof(Tag), "t");
+        var normalized = Expression.Property(tag, nameof(Tag.NormalizedName));
+        var searchKeys = Expression.Property(tag, nameof(Tag.SearchKeys));
+        var contains = typeof(string).GetMethod(nameof(string.Contains), [typeof(string)])!;
+
+        Expression? body = null;
+        foreach (var key in keys)
+        {
+            var keyValue = Expression.Property(Expression.Constant(new TokenHolder(key)), nameof(TokenHolder.Value));
+            var tokenValue = Expression.Property(Expression.Constant(new TokenHolder(Tag.SearchToken(key))),
+                                                 nameof(TokenHolder.Value));
+            Expression test = Expression.OrElse(Expression.Equal(normalized, keyValue),
+                                                Expression.Call(searchKeys, contains, tokenValue));
+            body = body is null ? test : Expression.OrElse(body, test);
+        }
+
+        return Expression.Lambda<Func<Tag, bool>>(body ?? Expression.Constant(false), tag);
+    }
 
     /// <summary><c>SearchKeys LIKE '%a%' OR SearchKeys LIKE '%b%' …</c></summary>
     private static Expression<Func<Tag, bool>> AnyToken(IReadOnlyList<string> tokens)

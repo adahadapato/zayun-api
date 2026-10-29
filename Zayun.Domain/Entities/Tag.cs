@@ -123,6 +123,18 @@ public class Tag : Entity<Guid>
         return true;
     }
 
+    /// <summary>
+    /// Rebuilds <see cref="SearchKeys"/> when it doesn't match the key and aliases (e.g. a tag stored before the column
+    /// existed). Run at start-up.
+    /// </summary>
+    /// <returns>True when it was wrong and has been fixed.</returns>
+    public bool RepairSearchKeys()
+    {
+        var before = SearchKeys;
+        RefreshSearchKeys();
+        return before != SearchKeys;
+    }
+
     private void SetName(string name)
     {
         var clean = TextRules.Required(TagNames.Clean(name), TagNames.MaxLength, nameof(name));

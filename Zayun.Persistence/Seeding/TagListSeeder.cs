@@ -21,7 +21,33 @@ internal static class TagListSeeder
     public static async Task SeedAsync(ZayunDbContext context, ILogger logger, CancellationToken cancellationToken = default)
     {
         await BuildAsync(context, logger, cancellationToken);
+        await RepairAsync(context, logger, cancellationToken);
         await RecountAsync(context, logger, cancellationToken);
+    }
+
+    /// <summary>
+    /// Fixes tags whose search keys don't contain their own key: tags stored before the <c>SearchKeys</c> column was
+    /// added got an empty value, so lookups and the usage recount couldn't find them.
+    /// </summary>
+    private static async Task RepairAsync(ZayunDbContext context, ILogger logger, CancellationToken cancellationToken)
+    {
+        var repaired = 0;
+        while (true)
+        {
+            var broken = await context.Tags
+                .Where(t => !t.SearchKeys.Contains("|" + t.NormalizedName + "|"))
+                .Take(500)
+                .ToListAsync(cancellationToken);
+            if (broken.Count == 0) break;
+
+            foreach (var tag in broken)
+                if (tag.RepairSearchKeys()) repaired++;
+            await context.SaveChangesAsync(cancellationToken);
+
+            if (broken.Count < 500) break;
+        }
+
+        if (repaired > 0) logger.LogInformation("Repaired the search keys of {Count} tags", repaired);
     }
 
     /// <summary>
@@ -44,7 +70,8 @@ internal static class TagListSeeder
         foreach (var key in usedKeys)
         {
             var token = Domain.Entities.Tag.SearchToken(key);
-            affected.AddRange(await context.Tags.Where(t => t.SearchKeys.Contains(token)).ToListAsync(cancellationToken));
+            affected.AddRange(await context.Tags.Where(t => t.NormalizedName == key || t.SearchKeys.Contains(token))
+                                                .ToListAsync(cancellationToken));
         }
 
         var changed = TagUsageCalculator.Apply(affected.DistinctBy(t => t.Id), projectTags, experienceSkills, groupSkills);
