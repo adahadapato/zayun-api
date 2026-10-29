@@ -43,6 +43,9 @@ public sealed class ZayunDbContext(DbContextOptions<ZayunDbContext> options)
     /// <summary>The core expertise list.</summary>
     public DbSet<CoreExpertise> CoreExpertise => Set<CoreExpertise>();
 
+    /// <summary>Awards and recognition (with their picture).</summary>
+    public DbSet<Award> Awards => Set<Award>();
+
     // ---------- Private ----------
 
     /// <summary>The owner's private documents (admin only).</summary>

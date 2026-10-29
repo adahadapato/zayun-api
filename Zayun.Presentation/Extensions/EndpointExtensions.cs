@@ -1,4 +1,5 @@
 using Zayun.Presentation.Endpoints.Auth;
+using Zayun.Presentation.Endpoints.Awards;
 using Zayun.Presentation.Endpoints.Contact;
 using Zayun.Presentation.Endpoints.Dashboard;
 using Zayun.Presentation.Endpoints.Documents;
@@ -27,6 +28,7 @@ public static class EndpointExtensions
         api.MapPresentationEndpoints();      // /api/presentations   + /api/admin/presentations
         api.MapExperienceEndpoints();        // /api/experience      + /api/admin/experience
         api.MapSkillEndpoints();             // /api/skills          + /api/admin/skills
+        api.MapAwardEndpoints();             // /api/awards          + /api/admin/awards
         api.MapContactEndpoints();           // /api/contact         + /api/admin/contact-messages
         api.MapDashboardEndpoints();         //                        /api/admin/overview
         api.MapDocumentEndpoints();          //                        /api/admin/documents

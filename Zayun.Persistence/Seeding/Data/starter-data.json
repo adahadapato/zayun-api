@@ -510,5 +510,22 @@
     "Computer Vision",
     "Intelligent Systems",
     "AI for Healthcare"
+  ],
+  "awards": [
+    {
+      "title": "Best Paper Award",
+      "awardedBy": "ICCVDM 2025",
+      "year": 2025,
+      "description": "International Conference on Computer Vision and Data Mining (ICCVDM 2025) recognition for research into transformer-based multimodal AI for explainable breast cancer image segmentation.",
+      "url": "https://ieeexplore.ieee.org/document/11290557",
+      "isFeatured": true
+    },
+    {
+      "title": "NECO Staff Productivity Award",
+      "awardedBy": "National Examinations Council (NECO)",
+      "year": 2022,
+      "description": "Most Hardworking, Dedicated and Committed Staff of the Year - ICT Department, National Examinations Council (NECO).",
+      "isFeatured": true
+    }
   ]
 }

@@ -5,7 +5,7 @@ namespace Zayun.Persistence.Mappings;
 
 /// <summary>
 /// Maps an <see cref="ImageFile"/> (and its <see cref="ImageDimensions"/>) as columns inside its owner's table,
-/// e.g. <c>Image_Path</c>, <c>Image_Dimensions_Width</c>. Used by ProjectImage and Presentation.
+/// e.g. <c>Image_Path</c>, <c>Image_Dimensions_Width</c>. Used by ProjectImage, Presentation and Award.
 /// </summary>
 /// <remarks>
 /// <para>A reusable mapping helper, not a table configuration: table configurations call it for their image columns.</para>

@@ -11,7 +11,7 @@ namespace Zayun.Persistence.Seeding;
 
 /// <summary>
 /// Fills an empty database with the website's starter content from <c>starter-data.json</c>: projects (with
-/// pictures), publications, presentations (with pictures), experience areas, skill groups and core expertise.
+/// pictures), publications, presentations (with pictures), experience areas, skill groups, core expertise and awards.
 /// </summary>
 /// <remarks>
 /// <para><b>Only when <c>SeedData:StarterDataEnabled</c> is true.</b></para>
@@ -59,6 +59,7 @@ internal static class StarterDataSeeder
         await SeedExperienceAsync(context, data, logger, cancellationToken);
         await SeedSkillGroupsAsync(context, data, logger, cancellationToken);
         await SeedCoreExpertiseAsync(context, data, logger, cancellationToken);
+        await SeedAwardsAsync(context, data, pictures, logger, cancellationToken);
     }
 
     // ───────────────────────────── Blocks ─────────────────────────────
@@ -144,6 +145,34 @@ internal static class StarterDataSeeder
 
         await context.SaveChangesAsync(ct);
         logger.LogInformation("Seeded {Count} presentations", data.Presentations.Count);
+    }
+
+    private static async Task SeedAwardsAsync(ZayunDbContext context, StarterData data, PictureSource pictures,
+                                              ILogger logger, CancellationToken ct)
+    {
+        if (data.Awards.Count == 0 || await context.Awards.IgnoreQueryFilters().AnyAsync(ct)) return;
+
+        for (var i = 0; i < data.Awards.Count; i++)
+        {
+            var a = data.Awards[i];
+            var what = $"award '{a.Title}'";
+
+            var award = Check(what, () => Award.Create(
+                new AwardDetails(a.Title, a.AwardedBy, a.Year, a.Description, a.Url, a.IsFeatured, ImageAlt: null),
+                displayOrder: i,
+                isPublished: true));
+
+            if (!string.IsNullOrWhiteSpace(a.Image))
+            {
+                var file = await pictures.StoreAsync(a.Image, $"awards/{award.Id:N}", Guid.CreateVersion7(), what, ct);
+                Check(what, () => award.SetImage(file, a.ImageAlt ?? a.Title));
+            }
+
+            context.Awards.Add(award);
+        }
+
+        await context.SaveChangesAsync(ct);
+        logger.LogInformation("Seeded {Count} awards", data.Awards.Count);
     }
 
     private static async Task SeedExperienceAsync(ZayunDbContext context, StarterData data, ILogger logger,

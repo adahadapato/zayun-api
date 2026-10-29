@@ -121,6 +121,7 @@ public static class DependencyInjection
         services.AddScoped<IExperienceAreaRepository, ExperienceAreaRepository>();
         services.AddScoped<ISkillGroupRepository, SkillGroupRepository>();
         services.AddScoped<ICoreExpertiseRepository, CoreExpertiseRepository>();
+        services.AddScoped<IAwardRepository, AwardRepository>();
 
         // 5b. Inbox and private documents
         services.AddScoped<IContactMessageRepository, ContactMessageRepository>();

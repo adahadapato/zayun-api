@@ -12,6 +12,20 @@ internal sealed class StarterData
     public List<StarterTextGroup> ExperienceAreas { get; set; } = [];
     public List<StarterTextGroup> SkillGroups { get; set; } = [];
     public List<string> CoreExpertise { get; set; } = [];
+    public List<StarterAward> Awards { get; set; } = [];
+}
+
+/// <summary>One award; <see cref="Image"/> (optional) is relative to the images folder.</summary>
+internal sealed class StarterAward
+{
+    public string Title { get; set; } = string.Empty;
+    public string AwardedBy { get; set; } = string.Empty;
+    public int Year { get; set; }
+    public string Description { get; set; } = string.Empty;
+    public string? Url { get; set; }
+    public bool IsFeatured { get; set; }
+    public string? Image { get; set; }
+    public string? ImageAlt { get; set; }
 }
 
 /// <summary>One project, with its pictures.</summary>

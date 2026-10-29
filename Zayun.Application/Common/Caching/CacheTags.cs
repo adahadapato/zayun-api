@@ -22,4 +22,7 @@ public static class CacheTags
 
     /// <summary>GET /api/skills (skill groups and core expertise together).</summary>
     public const string Skills = "skills";
+
+    /// <summary>GET /api/awards.</summary>
+    public const string Awards = "awards";
 }

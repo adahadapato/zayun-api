@@ -41,19 +41,23 @@ Production base address: **`https://api.zayun.net`** · local: **`https://localh
 - **Research**: publications (with "read it here" links and awards) and presentations (with the poster, slide or
   certificate).
 - **Experience** and **Skills** (skill groups plus the core expertise list).
+- **Awards**: awards and recognition, with an optional certificate or photo. Featured ones also show on the About
+  and Experience pages.
 - **Contact**: the form saves the message to the inbox, emails the owner (Reply goes straight to the visitor) and
   sends the visitor a confirmation.
 
 **The admin area (Admin role)**
 - Add, edit, delete, publish / unpublish (drafts) and drag-to-reorder every kind of content.
-- Upload project and presentation pictures: they're resized, converted to **WebP** and given a thumbnail.
+- Upload project, presentation and award pictures: they're resized, converted to **WebP** and given a thumbnail.
 - The Contact inbox: New / Replied / Closed with a private note.
 - **Private documents** (CV, certificates, transcripts…): PDF, Word, JPEG or PNG, stored outside the website's
   folders and opened only through signed links that expire after 5 minutes.
 - A dashboard with the numbers (content totals, published, new messages, documents).
 
 On first start the database is filled with **exactly what zayun.net showed before the API** (11 projects,
-2 publications, 3 presentations, 4 experience areas, 5 skill groups, 8 core expertise items, 17 pictures).
+2 publications, 3 presentations, 4 experience areas, 5 skill groups, 8 core expertise items, 2 awards, 17 pictures).
+Each block is only filled while its table is empty, so a new block (like Awards) is filled on the next start of an
+existing database too.
 
 ---
 
@@ -170,7 +174,7 @@ Zayun.sln
 │   ├── Common/Content/     ContentActions (publish, delete, reorder)
 │   ├── Common/Validation/  shared rules (web links, label lists, reorder lists, uploads)
 │   └── Features/<Area>/    Commands/ Queries/ Dtos/ Validators/ — Auth, Projects, Publications, Presentations,
-│                           Experience, Skills, Contact, Dashboard
+│                           Experience, Skills, Awards, Contact, Dashboard
 ├── Zayun.Persistence/
 │   ├── Configurations/     one IEntityTypeConfiguration per entity (+ EntityConfiguration, ContentEntityConfiguration)
 │   │   └── Identity/       ApplicationUser, ApplicationRole, role/admin seeders, RefreshTokenConfiguration
@@ -319,6 +323,7 @@ dotnet ef database update     --project Zayun.Persistence --startup-project Zayu
 | `Presentations` | presentations (picture columns, all null when there is none) |
 | `ExperienceAreas`, `SkillGroups` | text + skills (JSON column) |
 | `CoreExpertise` | the short list on the Skills page |
+| `Awards` | awards (picture columns, all null when there is none; `IsFeatured` = also on About / Experience) |
 | `ContactMessages` | the inbox |
 | `Documents` | private documents (file details as columns; the files are in `App_Data/private-documents`) |
 | `RefreshTokens` + `AspNet*` | sign-in (Identity) |
@@ -374,6 +379,7 @@ Development). 🛡 = Admin role.
 | GET | `/presentations` | presentations with pictures |
 | GET | `/experience` | experience areas |
 | GET | `/skills` | `{ groups, coreExpertise }` |
+| GET | `/awards` | awards with pictures (`isFeatured` for the About / Experience highlights) |
 | POST | `/contact/messages` | the Contact form (rate limited) |
 </details>
 
@@ -389,6 +395,7 @@ Development). 🛡 = Admin role.
 | Presentations | GET/POST `/presentations`; PUT `/presentations/{id}` · `/{id}/published` · `/{id}/image` (multipart: `file`, `altText`) · `/order`; DELETE `/presentations/{id}` · `/{id}/image` |
 | Experience | GET/POST `/experience`; PUT `/experience/{id}` · `/{id}/published` · `/order`; DELETE `/experience/{id}` |
 | Skills | GET `/skills`; POST `/skills/groups` · `/skills/expertise`; PUT `/skills/groups/{id}` · `/{id}/published` · `/order` (same for `/skills/expertise`); DELETE `/skills/groups/{id}` · `/skills/expertise/{id}` |
+| Awards | GET/POST `/awards`; PUT `/awards/{id}` · `/{id}/published` · `/{id}/image` (multipart: `file`, `altText`) · `/order`; DELETE `/awards/{id}` · `/{id}/image` |
 | Inbox | GET `/contact-messages?status=&page=&pageSize=` · `/contact-messages/{id}`; PUT `/{id}/status`; DELETE `/{id}` |
 | Documents | GET `/documents?category=` · `/documents/{id}/link` (a 5-minute download link); POST `/documents` (multipart: `file`, `title`, `category`, `notes`); PUT `/documents/{id}` · `/{id}/file` (multipart: `file`); DELETE `/documents/{id}` |
 </details>
@@ -435,7 +442,7 @@ shown as-is; front ends act on `code`.
 
 The public queries are cached for 60 minutes with `HybridCache` through `[Cacheable(tag)]`; every admin command that
 changes the same content carries `[InvalidatesCache(tag)]`, so edits show on the website straight away. Tags:
-`projects`, `publications`, `presentations`, `experience`, `skills` (`CacheTags.cs`).
+`projects`, `publications`, `presentations`, `experience`, `skills`, `awards` (`CacheTags.cs`).
 
 **Never cached:** admin screens and the inbox.
 
@@ -443,7 +450,7 @@ changes the same content carries `[InvalidatesCache(tag)]`, so edits show on the
 
 ## 12. Pictures and email
 
-- **Pictures** are stored under `wwwroot/uploads` (`projects/{projectId}/…`, `presentations/{id}/…`) and served at
+- **Pictures** are stored under `wwwroot/uploads` (`projects/{projectId}/…`, `presentations/{id}/…`, `awards/{id}/…`) and served at
   `{ApiBaseUrl}/uploads/…` with a one-year cache (file names never repeat). Magick.NET fixes rotation, strips
   metadata, shrinks to 1920 px (never enlarges), makes a 640 px thumbnail and writes both as WebP; transparency is
   kept. JPEG, PNG, WebP and HEIC are accepted, up to 15 MB.

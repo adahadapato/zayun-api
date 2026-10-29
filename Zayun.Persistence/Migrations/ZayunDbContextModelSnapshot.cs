@@ -125,6 +125,67 @@ namespace Zayun.Persistence.Migrations
                     b.ToTable("AspNetUserTokens", (string)null);
                 });
 
+            modelBuilder.Entity("Zayun.Domain.Entities.Award", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<string>("AwardedBy")
+                        .IsRequired()
+                        .HasMaxLength(200)
+                        .HasColumnType("nvarchar(200)");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<DateTime?>("DeletedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("Description")
+                        .IsRequired()
+                        .HasMaxLength(1000)
+                        .HasColumnType("nvarchar(1000)");
+
+                    b.Property<int>("DisplayOrder")
+                        .HasColumnType("int");
+
+                    b.Property<string>("ImageAlt")
+                        .HasMaxLength(300)
+                        .HasColumnType("nvarchar(300)");
+
+                    b.Property<bool>("IsDeleted")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bit")
+                        .HasDefaultValue(false);
+
+                    b.Property<bool>("IsFeatured")
+                        .HasColumnType("bit");
+
+                    b.Property<bool>("IsPublished")
+                        .HasColumnType("bit");
+
+                    b.Property<string>("Title")
+                        .IsRequired()
+                        .HasMaxLength(150)
+                        .HasColumnType("nvarchar(150)");
+
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("Url")
+                        .HasMaxLength(500)
+                        .HasColumnType("nvarchar(500)");
+
+                    b.Property<int>("Year")
+                        .HasColumnType("int");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("IsPublished", "DisplayOrder");
+
+                    b.ToTable("Awards", (string)null);
+                });
+
             modelBuilder.Entity("Zayun.Domain.Entities.ContactMessage", b =>
                 {
                     b.Property<Guid>("Id")
@@ -791,6 +852,68 @@ namespace Zayun.Persistence.Migrations
                         .HasForeignKey("UserId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
+                });
+
+            modelBuilder.Entity("Zayun.Domain.Entities.Award", b =>
+                {
+                    b.OwnsOne("Zayun.Domain.ValueObjects.ImageFile", "Image", b1 =>
+                        {
+                            b1.Property<Guid>("AwardId")
+                                .HasColumnType("uniqueidentifier");
+
+                            b1.Property<string>("ContentType")
+                                .IsRequired()
+                                .HasMaxLength(100)
+                                .HasColumnType("nvarchar(100)");
+
+                            b1.Property<long>("FileSizeBytes")
+                                .HasColumnType("bigint");
+
+                            b1.Property<string>("Hash")
+                                .IsRequired()
+                                .HasMaxLength(64)
+                                .HasColumnType("nvarchar(64)");
+
+                            b1.Property<string>("Path")
+                                .IsRequired()
+                                .HasMaxLength(500)
+                                .HasColumnType("nvarchar(500)");
+
+                            b1.Property<string>("ThumbnailPath")
+                                .HasMaxLength(500)
+                                .HasColumnType("nvarchar(500)");
+
+                            b1.HasKey("AwardId");
+
+                            b1.ToTable("Awards");
+
+                            b1.WithOwner()
+                                .HasForeignKey("AwardId");
+
+                            b1.OwnsOne("Zayun.Domain.ValueObjects.ImageDimensions", "Dimensions", b2 =>
+                                {
+                                    b2.Property<Guid>("ImageFileAwardId")
+                                        .HasColumnType("uniqueidentifier");
+
+                                    b2.Property<int>("Height")
+                                        .HasColumnType("int");
+
+                                    b2.Property<int>("Width")
+                                        .HasColumnType("int");
+
+                                    b2.HasKey("ImageFileAwardId");
+
+                                    b2.ToTable("Awards");
+
+                                    b2.WithOwner()
+                                        .HasForeignKey("ImageFileAwardId");
+                                });
+
+                            b1.Navigation("Dimensions")
+                                .IsRequired();
+                        });
+
+                    b.Navigation("Image");
                 });
 
             modelBuilder.Entity("Zayun.Domain.Entities.Document", b =>

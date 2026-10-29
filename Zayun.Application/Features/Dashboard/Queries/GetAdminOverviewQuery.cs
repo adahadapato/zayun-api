@@ -16,6 +16,7 @@ public sealed record GetAdminOverviewQuery : IRequest<Result<AdminOverviewDto>>;
 /// <param name="ExperienceAreas">Experience areas.</param>
 /// <param name="SkillGroups">Skill groups.</param>
 /// <param name="CoreExpertise">Core expertise items.</param>
+/// <param name="Awards">Awards.</param>
 /// <param name="NewMessages">Contact messages not looked at yet.</param>
 /// <param name="Documents">Private documents stored.</param>
 public sealed record AdminOverviewDto(
@@ -25,6 +26,7 @@ public sealed record AdminOverviewDto(
     ContentCountDto ExperienceAreas,
     ContentCountDto SkillGroups,
     ContentCountDto CoreExpertise,
+    ContentCountDto Awards,
     int NewMessages,
     int Documents);
 
@@ -42,6 +44,7 @@ public sealed class GetAdminOverviewQueryHandler(
     IExperienceAreaRepository experience,
     ISkillGroupRepository skillGroups,
     ICoreExpertiseRepository expertise,
+    IAwardRepository awards,
     IContactMessageRepository messages,
     IDocumentRepository documents)
     : IRequestHandler<GetAdminOverviewQuery, Result<AdminOverviewDto>>
@@ -56,11 +59,12 @@ public sealed class GetAdminOverviewQueryHandler(
         var experienceCount = Count(await experience.GetListAsync(publishedOnly: false, ct));
         var groupCount = Count(await skillGroups.GetListAsync(publishedOnly: false, ct));
         var expertiseCount = Count(await expertise.GetListAsync(publishedOnly: false, ct));
+        var awardCount = Count(await awards.GetListAsync(publishedOnly: false, ct));
         var byStatus = await messages.CountByStatusAsync(ct);
         var documentCount = await documents.CountAsync(ct);
 
         return new AdminOverviewDto(projectCount, publicationCount, presentationCount, experienceCount, groupCount,
-                                    expertiseCount, byStatus.GetValueOrDefault(ContactMessageStatus.New),
+                                    expertiseCount, awardCount, byStatus.GetValueOrDefault(ContactMessageStatus.New),
                                     documentCount);
     }
 
