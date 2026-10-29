@@ -21,8 +21,33 @@ public sealed class TagVocabulary
     private readonly List<Tag> _added = [];
 
     /// <summary>Starts from the tags already stored.</summary>
-    /// <param name="existing">Every stored tag.</param>
+    /// <param name="existing">The stored tags that could match (see <see cref="CandidateKeys"/>), or all of them.</param>
     public TagVocabulary(IEnumerable<Tag> existing) => _tags = [.. existing];
+
+    /// <summary>
+    /// Every key <see cref="Find"/> may look up for these names (the key, its built-in synonym and its singular /
+    /// plural), so only the tags that could match need loading.
+    /// </summary>
+    /// <param name="names">What was typed.</param>
+    /// <returns>The keys.</returns>
+    public static HashSet<string> CandidateKeys(IEnumerable<string?> names)
+    {
+        var keys = new HashSet<string>(StringComparer.Ordinal);
+        foreach (var name in names)
+        {
+            var key = TagNames.Key(name);
+            if (key.Length == 0) continue;
+            keys.Add(key);
+            if (TagNames.OtherNumber(key) is { } other) keys.Add(other);
+            if (TagNames.BuiltIn(name) is { } builtIn)
+            {
+                var builtInKey = TagNames.Key(builtIn);
+                keys.Add(builtInKey);
+                if (TagNames.OtherNumber(builtInKey) is { } otherBuiltIn) keys.Add(otherBuiltIn);
+            }
+        }
+        return keys;
+    }
 
     /// <summary>Tags created by <see cref="Resolve(string)"/> (add these to the database).</summary>
     public IReadOnlyList<Tag> Added => _added;
@@ -73,7 +98,7 @@ public sealed class TagVocabulary
         }
 
         var otherNumber = TagNames.OtherNumber(key);
-        return otherNumber is null ? null : _tags.FirstOrDefault(t => t.NormalizedName == otherNumber);
+        return otherNumber is null ? null : _tags.FirstOrDefault(t => t.Matches(otherNumber));
     }
 
     private Tag Add(string name)

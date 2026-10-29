@@ -1,5 +1,6 @@
 using MediatR;
 using Zayun.Application.Common.Caching;
+using Zayun.Application.Common.Tags;
 using Zayun.Application.Common.Content;
 using Zayun.Domain.Interfaces;
 using Zayun.Domain.Shared.Errors;
@@ -26,6 +27,7 @@ public sealed class SetProjectPublishedCommandHandler(IProjectRepository project
 /// <summary>Admin → Projects: delete a project (soft delete; its picture files are kept).</summary>
 /// <param name="Id">The project.</param>
 [InvalidatesCache(CacheTags.Projects)]
+[RefreshesTagUsage]
 public sealed record DeleteProjectCommand(Guid Id) : IRequest<Result>;
 
 /// <summary>Handles <see cref="DeleteProjectCommand"/>.</summary>

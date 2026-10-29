@@ -16,6 +16,7 @@ namespace Zayun.Application.Features.Skills.Commands;
 /// <param name="Skills">The skills.</param>
 /// <param name="IsPublished">Show it straight away, or keep it as a draft.</param>
 [InvalidatesCache(CacheTags.Skills)]
+[RefreshesTagUsage]
 public sealed record CreateSkillGroupCommand(string Title, string Description, IReadOnlyList<string>? Skills,
                                                  bool IsPublished) : IRequest<Result<SkillGroupDto>>;
 
@@ -41,6 +42,7 @@ public sealed class CreateSkillGroupCommandHandler(ISkillGroupRepository groups,
 /// <param name="Description">What the group covers.</param>
 /// <param name="Skills">The skills (replaces the old list).</param>
 [InvalidatesCache(CacheTags.Skills)]
+[RefreshesTagUsage]
 public sealed record UpdateSkillGroupCommand(Guid Id, string Title, string Description,
                                                  IReadOnlyList<string>? Skills) : IRequest<Result<SkillGroupDto>>;
 
@@ -79,6 +81,7 @@ public sealed class SetSkillGroupPublishedCommandHandler(ISkillGroupRepository g
 /// <summary>Admin → Skills: delete a group (soft delete).</summary>
 /// <param name="Id">The group.</param>
 [InvalidatesCache(CacheTags.Skills)]
+[RefreshesTagUsage]
 public sealed record DeleteSkillGroupCommand(Guid Id) : IRequest<Result>;
 
 /// <summary>Handles <see cref="DeleteSkillGroupCommand"/>.</summary>

@@ -22,11 +22,13 @@ public static class TagEndpoints
                        .WithTags("Admin: Tags")
                        .RequireAuthorization(Policies.RequireAdmin);
 
-        admin.MapGet("/", async (ISender sender, CancellationToken ct) =>
-                (await sender.Send(new GetTagsQuery(), ct)).ToHttp())
+        admin.MapGet("/", async ([AsParameters] GetTagsQuery query, ISender sender, CancellationToken ct) =>
+                (await sender.Send(query, ct)).ToHttp())
             .WithName("GetTags")
-            .WithSummary("Every tag, by name, with how many projects, experience areas and skill groups use it")
-            .Produces<IReadOnlyList<TagDto>>();
+            .WithSummary("One page of tags: ?search=&filter=All|Used|Unused&sort=Name|Usage&page=&pageSize= " +
+                         "(with how many projects, experience areas and skill groups use each)")
+            .Produces<TagListDto>()
+            .ProducesValidationProblem();
 
         admin.MapPost("/check", async (TagNameRequest body, ISender sender, CancellationToken ct) =>
                 (await sender.Send(new CheckTagQuery(body.Name), ct)).ToHttp())

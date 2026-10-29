@@ -20,7 +20,7 @@ public static class DependencyInjection
         // 1. The clock: .NET's built-in TimeProvider (FakeTimeProvider in tests)
         services.AddSingleton(TimeProvider.System);
         services.AddScoped<Common.Tags.TagResolver>();                    // typed tags → the shared tag list
-        services.AddScoped<Features.Tags.Queries.TagUsageCounter>();      // where each tag is used
+        services.AddScoped<Common.Tags.TagUsageRefresher>();              // where each tag is used
         services.AddScoped<Features.Tags.Commands.TaggedContent>();       // renames / merges everywhere
 
         // 2. Cache: in-memory by default; a shared cache (e.g. Redis) can be added later without code changes here
@@ -37,6 +37,7 @@ public static class DependencyInjection
             cfg.AddOpenBehavior(typeof(ValidationBehavior<,>));
             cfg.AddOpenBehavior(typeof(CachingBehavior<,>));
             cfg.AddOpenBehavior(typeof(CacheInvalidationBehavior<,>));
+            cfg.AddOpenBehavior(typeof(TagUsageBehavior<,>));
             // v13+ only: cfg.LicenseKey = "...";
         });
 

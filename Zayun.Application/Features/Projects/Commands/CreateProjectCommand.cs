@@ -25,6 +25,7 @@ namespace Zayun.Application.Features.Projects.Commands;
 /// <param name="Tags">Technologies and topics.</param>
 /// <param name="IsPublished">Show it straight away, or keep it as a draft.</param>
 [InvalidatesCache(CacheTags.Projects)]
+[RefreshesTagUsage]
 public sealed record CreateProjectCommand(
     string Title,
     string? Slug,

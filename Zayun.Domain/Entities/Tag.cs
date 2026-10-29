@@ -10,7 +10,10 @@ namespace Zayun.Domain.Entities;
 /// <para><see cref="Name"/> is shown as written ("TypeScript", "ASP.NET Core"); <see cref="NormalizedName"/> is the
 /// UPPERCASE key (see <see cref="TagNames.Key"/>) and is unique.</para>
 /// <para><see cref="Aliases"/> are other keys that mean this tag: old names after a rename or a merge, so typing the
-/// old name later still finds it.</para>
+/// old name later still finds it. <see cref="SearchKeys"/> holds the key and every alias as "|KEY|ALIAS|", so the
+/// database can find a tag by any of them with a plain text search, however long the list grows.</para>
+/// <para>The usage counts (<see cref="ProjectCount"/>…) are kept up to date after every change to projects,
+/// experience areas and skill groups, so the admin list can filter and sort by them in the database.</para>
 /// <para>Projects, experience areas and skill groups keep the NAMES in their lists (so the website reads them
 /// directly); renaming or merging a tag updates those lists.</para>
 /// <para>Bad text is caught by the validators first, so the checks here THROW.</para>
@@ -19,6 +22,9 @@ public class Tag : Entity<Guid>
 {
     /// <summary>Most aliases kept for one tag.</summary>
     public const int MaxAliases = 30;
+
+    /// <summary>Longest <see cref="SearchKeys"/>: the key and every alias with separators.</summary>
+    public const int SearchKeysMaxLength = (TagNames.KeyMaxLength + 1) * (MaxAliases + 1) + 1;
 
     /// <summary>Required by EF Core.</summary>
     protected Tag() { }
@@ -34,6 +40,21 @@ public class Tag : Entity<Guid>
     /// <summary>Other keys that mean this tag (old names), e.g. "RESTFULAPI".</summary>
     public List<string> Aliases { get; private set; } = [];
 
+    /// <summary>"|KEY|ALIAS1|ALIAS2|": every key that finds this tag, for searching in the database.</summary>
+    public string SearchKeys { get; private set; } = "|";
+
+    /// <summary>How many projects use it (drafts included).</summary>
+    public int ProjectCount { get; private set; }
+
+    /// <summary>How many experience areas use it.</summary>
+    public int ExperienceAreaCount { get; private set; }
+
+    /// <summary>How many skill groups use it.</summary>
+    public int SkillGroupCount { get; private set; }
+
+    /// <summary>Everything that uses it.</summary>
+    public int UsageCount => ProjectCount + ExperienceAreaCount + SkillGroupCount;
+
     /// <summary>A new tag.</summary>
     /// <param name="name">The name as it should be shown.</param>
     /// <returns>The tag.</returns>
@@ -45,6 +66,10 @@ public class Tag : Entity<Guid>
         tag.SetName(name);
         return tag;
     }
+
+    /// <summary>The text <see cref="SearchKeys"/> contains when this key finds the tag ("|RESTAPI|").</summary>
+    /// <param name="key">A key from <see cref="TagNames.Key"/>.</param>
+    public static string SearchToken(string key) => $"|{key}|";
 
     /// <summary>True when this key is the tag's key or one of its aliases.</summary>
     /// <param name="key">A key from <see cref="TagNames.Key"/>.</param>
@@ -80,6 +105,22 @@ public class Tag : Entity<Guid>
         if (string.IsNullOrWhiteSpace(key) || key == NormalizedName || Aliases.Contains(key)) return;
         Aliases.Add(key);
         if (Aliases.Count > MaxAliases) Aliases.RemoveAt(0);   // oldest first
+        RefreshSearchKeys();
+    }
+
+    /// <summary>Sets how many items use it (kept up to date by the tag usage refresh).</summary>
+    /// <param name="projects">Projects.</param>
+    /// <param name="experienceAreas">Experience areas.</param>
+    /// <param name="skillGroups">Skill groups.</param>
+    /// <returns>True when anything changed.</returns>
+    public bool SetUsage(int projects, int experienceAreas, int skillGroups)
+    {
+        if (projects == ProjectCount && experienceAreas == ExperienceAreaCount && skillGroups == SkillGroupCount)
+            return false;
+        ProjectCount = Math.Max(0, projects);
+        ExperienceAreaCount = Math.Max(0, experienceAreas);
+        SkillGroupCount = Math.Max(0, skillGroups);
+        return true;
     }
 
     private void SetName(string name)
@@ -88,5 +129,9 @@ public class Tag : Entity<Guid>
         Name = clean;
         NormalizedName = TagNames.Key(clean);
         Aliases.Remove(NormalizedName);
+        RefreshSearchKeys();
     }
+
+    private void RefreshSearchKeys() =>
+        SearchKeys = "|" + string.Concat(new[] { NormalizedName }.Concat(Aliases).Select(k => k + "|"));
 }

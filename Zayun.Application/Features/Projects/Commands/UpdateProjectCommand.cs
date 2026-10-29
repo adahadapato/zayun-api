@@ -25,6 +25,7 @@ namespace Zayun.Application.Features.Projects.Commands;
 /// <param name="IsPrivateRepo">True when the code is private.</param>
 /// <param name="Tags">Technologies and topics.</param>
 [InvalidatesCache(CacheTags.Projects)]
+[RefreshesTagUsage]
 public sealed record UpdateProjectCommand(
     Guid Id,
     string Title,

@@ -16,6 +16,7 @@ namespace Zayun.Application.Features.Experience.Commands;
 /// <param name="Skills">Skills used.</param>
 /// <param name="IsPublished">Show it straight away, or keep it as a draft.</param>
 [InvalidatesCache(CacheTags.Experience)]
+[RefreshesTagUsage]
 public sealed record CreateExperienceAreaCommand(string Title, string Description, IReadOnlyList<string>? Skills,
                                                  bool IsPublished) : IRequest<Result<ExperienceAreaDto>>;
 
@@ -41,6 +42,7 @@ public sealed class CreateExperienceAreaCommandHandler(IExperienceAreaRepository
 /// <param name="Description">What it involved.</param>
 /// <param name="Skills">Skills used (replaces the old list).</param>
 [InvalidatesCache(CacheTags.Experience)]
+[RefreshesTagUsage]
 public sealed record UpdateExperienceAreaCommand(Guid Id, string Title, string Description,
                                                  IReadOnlyList<string>? Skills) : IRequest<Result<ExperienceAreaDto>>;
 
@@ -79,6 +81,7 @@ public sealed class SetExperienceAreaPublishedCommandHandler(IExperienceAreaRepo
 /// <summary>Admin → Experience: delete an area (soft delete).</summary>
 /// <param name="Id">The area.</param>
 [InvalidatesCache(CacheTags.Experience)]
+[RefreshesTagUsage]
 public sealed record DeleteExperienceAreaCommand(Guid Id) : IRequest<Result>;
 
 /// <summary>Handles <see cref="DeleteExperienceAreaCommand"/>.</summary>

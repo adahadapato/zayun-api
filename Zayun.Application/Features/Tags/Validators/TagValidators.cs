@@ -49,3 +49,17 @@ public sealed class MergeTagCommandValidator : AbstractValidator<MergeTagCommand
         RuleFor(x => x.IntoTagId).NotEmpty().WithMessage("Choose the tag to merge into.");
     }
 }
+
+/// <summary>Checks <see cref="GetTagsQuery"/>.</summary>
+public sealed class GetTagsQueryValidator : AbstractValidator<GetTagsQuery>
+{
+    /// <summary>The rules.</summary>
+    public GetTagsQueryValidator()
+    {
+        RuleFor(x => x.Search).MaximumLength(TagNames.MaxLength);
+        RuleFor(x => x.Filter).IsInEnum();
+        RuleFor(x => x.Sort).IsInEnum();
+        RuleFor(x => x.Page).GreaterThanOrEqualTo(1);
+        RuleFor(x => x.PageSize).InclusiveBetween(1, 100);
+    }
+}

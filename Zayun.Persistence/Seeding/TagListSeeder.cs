@@ -20,6 +20,43 @@ internal static class TagListSeeder
     /// <param name="cancellationToken">Stops seeding.</param>
     public static async Task SeedAsync(ZayunDbContext context, ILogger logger, CancellationToken cancellationToken = default)
     {
+        await BuildAsync(context, logger, cancellationToken);
+        await RecountAsync(context, logger, cancellationToken);
+    }
+
+    /// <summary>
+    /// Recounts where every tag is used, on every start, so the numbers are right even after a change that failed to
+    /// update them. Only the tags used now or before are loaded.
+    /// </summary>
+    private static async Task RecountAsync(ZayunDbContext context, ILogger logger, CancellationToken cancellationToken)
+    {
+        var projectTags = (await context.Projects.AsNoTracking().Select(p => p.Tags).ToListAsync(cancellationToken))
+                          .Cast<IReadOnlyList<string>>().ToList();
+        var experienceSkills = (await context.ExperienceAreas.AsNoTracking().Select(e => e.Skills)
+                                             .ToListAsync(cancellationToken)).Cast<IReadOnlyList<string>>().ToList();
+        var groupSkills = (await context.SkillGroups.AsNoTracking().Select(g => g.Skills)
+                                        .ToListAsync(cancellationToken)).Cast<IReadOnlyList<string>>().ToList();
+
+        var usedKeys = TagUsageCalculator.KeysIn([.. projectTags, .. experienceSkills, .. groupSkills]);
+        var affected = await context.Tags
+            .Where(t => t.ProjectCount + t.ExperienceAreaCount + t.SkillGroupCount > 0)
+            .ToListAsync(cancellationToken);
+        foreach (var key in usedKeys)
+        {
+            var token = Domain.Entities.Tag.SearchToken(key);
+            affected.AddRange(await context.Tags.Where(t => t.SearchKeys.Contains(token)).ToListAsync(cancellationToken));
+        }
+
+        var changed = TagUsageCalculator.Apply(affected.DistinctBy(t => t.Id), projectTags, experienceSkills, groupSkills);
+        if (changed == 0) return;
+
+        await context.SaveChangesAsync(cancellationToken);
+        logger.LogInformation("Recounted tag usage: {Count} tags updated", changed);
+    }
+
+    /// <summary>Builds the tag list from the content, once (while the Tags table is empty).</summary>
+    private static async Task BuildAsync(ZayunDbContext context, ILogger logger, CancellationToken cancellationToken)
+    {
         if (await context.Tags.IgnoreQueryFilters().AnyAsync(cancellationToken)) return;
 
         var vocabulary = new TagVocabulary([]);

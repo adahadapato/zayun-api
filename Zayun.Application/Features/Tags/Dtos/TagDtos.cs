@@ -1,4 +1,5 @@
 using Zayun.Domain.Entities;
+using Zayun.Domain.Shared.Results;
 
 namespace Zayun.Application.Features.Tags.Dtos;
 
@@ -10,6 +11,7 @@ namespace Zayun.Application.Features.Tags.Dtos;
 /// <param name="Projects">Projects that use it.</param>
 /// <param name="ExperienceAreas">Experience areas that use it.</param>
 /// <param name="SkillGroups">Skill groups that use it.</param>
+/// <param name="UsedBy">Everything that uses it.</param>
 public sealed record TagDto(
     Guid Id,
     string Name,
@@ -17,29 +19,21 @@ public sealed record TagDto(
     IReadOnlyList<string> Aliases,
     int Projects,
     int ExperienceAreas,
-    int SkillGroups)
+    int SkillGroups,
+    int UsedBy)
 {
-    /// <summary>Everything that uses it.</summary>
-    public int UsedBy => Projects + ExperienceAreas + SkillGroups;
-
-    /// <summary>Maps a tag with its usage counts.</summary>
-    public static TagDto From(Tag tag, TagUsage usage) =>
-        new(tag.Id, tag.Name, tag.NormalizedName, tag.Aliases, usage.Projects, usage.ExperienceAreas,
-            usage.SkillGroups);
+    /// <summary>Maps a tag.</summary>
+    public static TagDto From(Tag tag) =>
+        new(tag.Id, tag.Name, tag.NormalizedName, tag.Aliases, tag.ProjectCount, tag.ExperienceAreaCount,
+            tag.SkillGroupCount, tag.UsageCount);
 }
 
-/// <summary>How many items use a tag.</summary>
-/// <param name="Projects">Projects.</param>
-/// <param name="ExperienceAreas">Experience areas.</param>
-/// <param name="SkillGroups">Skill groups.</param>
-public sealed record TagUsage(int Projects, int ExperienceAreas, int SkillGroups)
-{
-    /// <summary>Not used anywhere.</summary>
-    public static readonly TagUsage None = new(0, 0, 0);
-
-    /// <summary>Everything that uses it.</summary>
-    public int Total => Projects + ExperienceAreas + SkillGroups;
-}
+/// <summary>One page of the admin tag list, plus the totals for its filter tabs.</summary>
+/// <param name="Tags">The page.</param>
+/// <param name="Total">Every tag.</param>
+/// <param name="Used">Tags something uses.</param>
+/// <param name="Unused">Tags nothing uses.</param>
+public sealed record TagListDto(PagedResult<TagDto> Tags, int Total, int Used, int Unused);
 
 /// <summary>The result of checking a typed tag name (while typing, before it's added).</summary>
 /// <param name="Status">Existing tag, new tag, or doubtful (the AI thinks it isn't a skill).</param>
