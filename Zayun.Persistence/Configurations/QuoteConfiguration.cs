@@ -1,10 +1,15 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 using Zayun.Domain.Entities;
+using Zayun.Domain.ValueObjects;
+using Zayun.Persistence.Mappings;
 
 namespace Zayun.Persistence.Configurations;
 
-/// <summary>Table <c>Quotes</c>: quotes, proverbs and the owner's sayings for the "Quote of the day" card.</summary>
+/// <summary>
+/// Table <c>Quotes</c>: quotes, proverbs and the owner's sayings for the "Quote of the day" card, with the optional
+/// picture (<c>Picture_Path</c>…) and animation (<c>Animation_Path</c>…) stored as columns, all null when there is none.
+/// </summary>
 public sealed class QuoteConfiguration : ContentEntityConfiguration<Quote>
 {
     /// <inheritdoc />
@@ -23,6 +28,16 @@ public sealed class QuoteConfiguration : ContentEntityConfiguration<Quote>
         builder.Property(q => q.IsSourceChecked).IsRequired();
         builder.Property(q => q.PinnedMonth);
         builder.Property(q => q.PinnedDay);
+
+        builder.Property(q => q.PictureAlt).HasMaxLength(Quote.PictureAltMaxLength);
+        builder.OwnsOne(q => q.Picture, picture => picture.MapImageFile());
+        builder.OwnsOne(q => q.Animation, animation =>
+        {
+            animation.Property(a => a.Path).IsRequired().HasMaxLength(AnimationFile.PathMaxLength);
+            animation.Property(a => a.ContentType).IsRequired().HasMaxLength(AnimationFile.ContentTypeMaxLength);
+            animation.Property(a => a.FileSizeBytes).IsRequired();
+            animation.Property(a => a.Hash).IsRequired().HasMaxLength(AnimationFile.HashMaxLength);
+        });
 
         builder.Ignore(q => q.IsPinned);   // worked out from PinnedMonth / PinnedDay, not stored
 

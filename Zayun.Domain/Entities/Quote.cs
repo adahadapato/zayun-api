@@ -1,5 +1,8 @@
 using Zayun.Domain.Enums;
+using Zayun.Domain.Shared.Errors;
+using Zayun.Domain.Shared.Results;
 using Zayun.Domain.Shared.Text;
+using Zayun.Domain.ValueObjects;
 
 namespace Zayun.Domain.Entities;
 
@@ -13,6 +16,9 @@ namespace Zayun.Domain.Entities;
 /// <para><b>Pinned day:</b> a quote can be pinned to a day of the year (e.g. 1 October). It is then shown on that day
 /// every year, and on no other day.</para>
 /// <para><b>Display order</b> (from <see cref="ContentEntity"/>) is the order of the daily rotation.</para>
+/// <para><b>Picture and animation</b> (optional, e.g. for "Nature first"): a still picture (WebP, with its
+/// description), and an MP4 animation that needs the picture, because the picture is what visitors who ask for
+/// reduced motion see instead.</para>
 /// <para>Bad text is caught by the validators first, so the checks here THROW.</para>
 /// </remarks>
 public class Quote : ContentEntity
@@ -37,6 +43,9 @@ public class Quote : ContentEntity
 
     /// <summary>Longest story line under an illustrated saying.</summary>
     public const int StoryMaxLength = 300;
+
+    /// <summary>Longest picture description (alt text).</summary>
+    public const int PictureAltMaxLength = 300;
 
     /// <summary>Required by EF Core.</summary>
     protected Quote() { }
@@ -75,6 +84,16 @@ public class Quote : ContentEntity
 
     /// <summary>The day of the month it's pinned to, or null when not pinned.</summary>
     public int? PinnedDay { get; private set; }
+
+    /// <summary>The still picture (WebP); null for none.</summary>
+    public ImageFile? Picture { get; private set; }
+
+    /// <summary>The picture's description for screen readers, which also tells the story the animation shows; null
+    /// when there's no picture.</summary>
+    public string? PictureAlt { get; private set; }
+
+    /// <summary>The MP4 animation; null for none. Only set while there's a <see cref="Picture"/>.</summary>
+    public AnimationFile? Animation { get; private set; }
 
     /// <summary>True when it's pinned to a day of the year.</summary>
     public bool IsPinned => PinnedMonth is not null && PinnedDay is not null;
@@ -124,6 +143,60 @@ public class Quote : ContentEntity
         (PinnedMonth, PinnedDay) = CheckPinnedDay(details.PinnedMonth, details.PinnedDay);
     }
 
+    /// <summary>Sets or replaces the still picture.</summary>
+    /// <param name="file">The stored picture.</param>
+    /// <param name="altText">Its description for screen readers.</param>
+    /// <returns>The picture it replaced (so its files can be deleted), or null.</returns>
+    /// <exception cref="ArgumentException">Empty description.</exception>
+    /// <exception cref="ArgumentOutOfRangeException">Description too long.</exception>
+    public ImageFile? SetPicture(ImageFile file, string altText)
+    {
+        ArgumentNullException.ThrowIfNull(file);
+        var alt = TextRules.Required(altText, PictureAltMaxLength, nameof(altText));
+
+        var previous = Picture;
+        Picture = file;
+        PictureAlt = alt;
+        return previous;
+    }
+
+    /// <summary>Takes the picture off, and the animation with it (an animation needs its picture).</summary>
+    /// <returns>The removed files (so they can be deleted); or NoPicture.</returns>
+    public Result<RemovedQuoteMedia> RemovePicture()
+    {
+        if (Picture is null) return QuoteErrors.NoPicture;
+
+        var removed = new RemovedQuoteMedia(Picture, Animation);
+        Picture = null;
+        PictureAlt = null;
+        Animation = null;
+        return removed;
+    }
+
+    /// <summary>Sets or replaces the animation. Needs a picture first.</summary>
+    /// <param name="file">The stored MP4.</param>
+    /// <returns>The animation it replaced (so its file can be deleted); or AnimationNeedsPicture.</returns>
+    public Result<ReplacedAnimation> SetAnimation(AnimationFile file)
+    {
+        ArgumentNullException.ThrowIfNull(file);
+        if (Picture is null) return QuoteErrors.AnimationNeedsPicture;
+
+        var previous = Animation;
+        Animation = file;
+        return new ReplacedAnimation(previous);
+    }
+
+    /// <summary>Takes the animation off (the picture stays).</summary>
+    /// <returns>The removed animation (so its file can be deleted); or NoAnimation.</returns>
+    public Result<AnimationFile> RemoveAnimation()
+    {
+        if (Animation is null) return QuoteErrors.NoAnimation;
+
+        var removed = Animation;
+        Animation = null;
+        return removed;
+    }
+
     /// <summary>Both null (not pinned), or a real day of the year. 29 February is allowed (shown in leap years).</summary>
     private static (int? Month, int? Day) CheckPinnedDay(int? month, int? day)
     {
@@ -163,3 +236,12 @@ public sealed record QuoteDetails(
     bool IsSourceChecked,
     int? PinnedMonth,
     int? PinnedDay);
+
+/// <summary>What <see cref="Quote.RemovePicture"/> took off, so the files can be deleted.</summary>
+/// <param name="Picture">The picture.</param>
+/// <param name="Animation">The animation that went with it, if any.</param>
+public sealed record RemovedQuoteMedia(ImageFile Picture, AnimationFile? Animation);
+
+/// <summary>What <see cref="Quote.SetAnimation"/> replaced, so its file can be deleted.</summary>
+/// <param name="Previous">The old animation, or null when there wasn't one.</param>
+public sealed record ReplacedAnimation(AnimationFile? Previous);

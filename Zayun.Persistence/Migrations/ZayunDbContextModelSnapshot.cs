@@ -742,6 +742,10 @@ namespace Zayun.Persistence.Migrations
                         .HasMaxLength(60)
                         .HasColumnType("nvarchar(60)");
 
+                    b.Property<string>("PictureAlt")
+                        .HasMaxLength(300)
+                        .HasColumnType("nvarchar(300)");
+
                     b.Property<int?>("PinnedDay")
                         .HasColumnType("int");
 
@@ -1474,6 +1478,101 @@ namespace Zayun.Persistence.Migrations
                         });
 
                     b.Navigation("Links");
+                });
+
+            modelBuilder.Entity("Zayun.Domain.Entities.Quote", b =>
+                {
+                    b.OwnsOne("Zayun.Domain.ValueObjects.ImageFile", "Picture", b1 =>
+                        {
+                            b1.Property<Guid>("QuoteId")
+                                .HasColumnType("uniqueidentifier");
+
+                            b1.Property<string>("ContentType")
+                                .IsRequired()
+                                .HasMaxLength(100)
+                                .HasColumnType("nvarchar(100)");
+
+                            b1.Property<long>("FileSizeBytes")
+                                .HasColumnType("bigint");
+
+                            b1.Property<string>("Hash")
+                                .IsRequired()
+                                .HasMaxLength(64)
+                                .HasColumnType("nvarchar(64)");
+
+                            b1.Property<string>("Path")
+                                .IsRequired()
+                                .HasMaxLength(500)
+                                .HasColumnType("nvarchar(500)");
+
+                            b1.Property<string>("ThumbnailPath")
+                                .HasMaxLength(500)
+                                .HasColumnType("nvarchar(500)");
+
+                            b1.HasKey("QuoteId");
+
+                            b1.ToTable("Quotes");
+
+                            b1.WithOwner()
+                                .HasForeignKey("QuoteId");
+
+                            b1.OwnsOne("Zayun.Domain.ValueObjects.ImageDimensions", "Dimensions", b2 =>
+                                {
+                                    b2.Property<Guid>("ImageFileQuoteId")
+                                        .HasColumnType("uniqueidentifier");
+
+                                    b2.Property<int>("Height")
+                                        .HasColumnType("int");
+
+                                    b2.Property<int>("Width")
+                                        .HasColumnType("int");
+
+                                    b2.HasKey("ImageFileQuoteId");
+
+                                    b2.ToTable("Quotes");
+
+                                    b2.WithOwner()
+                                        .HasForeignKey("ImageFileQuoteId");
+                                });
+
+                            b1.Navigation("Dimensions")
+                                .IsRequired();
+                        });
+
+                    b.OwnsOne("Zayun.Domain.ValueObjects.AnimationFile", "Animation", b1 =>
+                        {
+                            b1.Property<Guid>("QuoteId")
+                                .HasColumnType("uniqueidentifier");
+
+                            b1.Property<string>("ContentType")
+                                .IsRequired()
+                                .HasMaxLength(100)
+                                .HasColumnType("nvarchar(100)");
+
+                            b1.Property<long>("FileSizeBytes")
+                                .HasColumnType("bigint");
+
+                            b1.Property<string>("Hash")
+                                .IsRequired()
+                                .HasMaxLength(64)
+                                .HasColumnType("nvarchar(64)");
+
+                            b1.Property<string>("Path")
+                                .IsRequired()
+                                .HasMaxLength(500)
+                                .HasColumnType("nvarchar(500)");
+
+                            b1.HasKey("QuoteId");
+
+                            b1.ToTable("Quotes");
+
+                            b1.WithOwner()
+                                .HasForeignKey("QuoteId");
+                        });
+
+                    b.Navigation("Animation");
+
+                    b.Navigation("Picture");
                 });
 
             modelBuilder.Entity("Zayun.Domain.Entities.RefreshToken", b =>
