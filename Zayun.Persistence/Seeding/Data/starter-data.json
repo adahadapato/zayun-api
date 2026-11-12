@@ -564,5 +564,124 @@
         "showOnWebsite": true
       }
     ]
-  }
+  },
+  "quotes": [
+    {
+      "kind": "Quote",
+      "text": "Nature, to be commanded, must be obeyed.",
+      "author": "Francis Bacon",
+      "source": "Novum Organum (1620)",
+      "sourceChecked": true
+    },
+    {
+      "kind": "Quote",
+      "text": "The Analytical Engine weaves algebraical patterns just as the Jacquard-loom weaves flowers and leaves.",
+      "author": "Ada Lovelace",
+      "source": "Notes on the Analytical Engine (1843)",
+      "sourceChecked": true
+    },
+    {
+      "kind": "Quote",
+      "text": "Endless forms most beautiful and most wonderful have been, and are being, evolved.",
+      "author": "Charles Darwin",
+      "source": "On the Origin of Species (1859), closing words",
+      "sourceChecked": true
+    },
+    {
+      "kind": "Quote",
+      "text": "For a successful technology, reality must take precedence over public relations, for nature cannot be fooled.",
+      "author": "Richard Feynman",
+      "source": "Report on the Space Shuttle Challenger accident, Appendix F (1986)",
+      "sourceChecked": true
+    },
+    {
+      "kind": "Quote",
+      "text": "Nature does nothing in vain.",
+      "author": "Aristotle",
+      "source": "Politics",
+      "sourceChecked": true
+    },
+    {
+      "kind": "Quote",
+      "text": "Instead of trying to produce a programme to simulate the adult mind, why not rather try to produce one which simulates the child's?",
+      "author": "Alan Turing",
+      "source": "Computing Machinery and Intelligence (1950)",
+      "sourceChecked": true
+    },
+    {
+      "kind": "Quote",
+      "text": "We are a way for the cosmos to know itself.",
+      "author": "Carl Sagan",
+      "source": "Cosmos (1980)",
+      "sourceChecked": true
+    },
+    {
+      "kind": "Quote",
+      "text": "Nothing in biology makes sense except in the light of evolution.",
+      "author": "Theodosius Dobzhansky",
+      "source": "Essay title (1973)",
+      "sourceChecked": true
+    },
+    {
+      "kind": "Quote",
+      "text": "The Brain – is wider than the Sky –",
+      "author": "Emily Dickinson",
+      "source": "Poem published in 1896",
+      "sourceChecked": true
+    },
+    {
+      "kind": "Quote",
+      "text": "Nature is not a temple, but a workshop, and man's the workman in it.",
+      "author": "Ivan Turgenev",
+      "source": "Fathers and Sons (1862), said by Bazarov",
+      "sourceChecked": true
+    },
+    {
+      "kind": "Quote",
+      "text": "In all things of nature there is something of the marvellous.",
+      "author": "Aristotle",
+      "source": "Parts of Animals",
+      "sourceChecked": true
+    },
+    {
+      "kind": "Quote",
+      "text": "Human subtlety will never devise an invention more beautiful, more simple or more direct than does nature.",
+      "author": "Leonardo da Vinci",
+      "source": "Notebooks (wording varies by translation: check before publishing)",
+      "sourceChecked": false
+    },
+    {
+      "kind": "Quote",
+      "text": "I seem to have been only like a boy playing on the seashore… whilst the great ocean of truth lay all undiscovered before me.",
+      "author": "Isaac Newton (attributed)",
+      "source": "Reported in Brewster's Memoirs of Newton (1855): check before publishing",
+      "sourceChecked": false
+    },
+    {
+      "kind": "Quote",
+      "text": "Look deep into nature, and then you will understand everything better.",
+      "author": "Albert Einstein (attributed)",
+      "source": "Reported second-hand: check before publishing",
+      "sourceChecked": false
+    },
+    {
+      "kind": "Quote",
+      "text": "We can only see a short distance ahead, but we can see plenty there that needs to be done.",
+      "author": "Alan Turing",
+      "source": "Computing Machinery and Intelligence (1950)",
+      "sourceChecked": true,
+      "pinnedMonth": 6,
+      "pinnedDay": 23
+    },
+    {
+      "kind": "OwnSaying",
+      "text": "First we watched the bird. Then we built the plane. Now we build the bird.",
+      "author": "Enobong Adahada",
+      "series": "Nature first",
+      "story": "Leonardo da Vinci studied how birds fly, the Wright brothers learned to turn by watching birds twist their wing tips, and today's flapping-wing drones copy the hummingbird.",
+      "sourceChecked": true,
+      "pinnedMonth": 12,
+      "pinnedDay": 17
+    }
+  ]
 }

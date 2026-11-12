@@ -9,6 +9,7 @@ using Zayun.Presentation.Endpoints.Presentations;
 using Zayun.Presentation.Endpoints.Profiles;
 using Zayun.Presentation.Endpoints.Projects;
 using Zayun.Presentation.Endpoints.Publications;
+using Zayun.Presentation.Endpoints.Quotes;
 using Zayun.Presentation.Endpoints.SiteImages;
 using Zayun.Presentation.Endpoints.Skills;
 using Zayun.Presentation.Endpoints.Tags;
@@ -37,6 +38,7 @@ public static class EndpointExtensions
         api.MapProfileEndpoints();           // /api/profiles        + /api/admin/profiles
         api.MapSiteImageEndpoints();         // /api/site-images     + /api/admin/site-images
         api.MapPersonalDetailsEndpoints();   // /api/personal-details + /api/admin/personal-details
+        api.MapQuoteEndpoints();             // /api/quotes/today
         api.MapContactEndpoints();           // /api/contact         + /api/admin/contact-messages
         api.MapDashboardEndpoints();         //                        /api/admin/overview
         api.MapDocumentEndpoints();          //                        /api/admin/documents

@@ -44,6 +44,8 @@ Production base address: **`https://api.zayun.net`** · local: **`https://localh
 - **Experience** and **Skills** (skill groups plus the core expertise list).
 - **Profiles**: online profiles (ORCID, ResearchGate, Google Scholar, arXiv, LinkedIn, GitHub…), each shown in the
   footer, on Contact and / or on Research, as chosen in the admin area.
+- **Quote of the day**: one quote, proverb or saying per day (UK date), the same for everyone all day. A quote
+  pinned to a day of the year (e.g. 17 December) wins on that day; otherwise a daily rotation through the rest.
 - **Awards**: awards and recognition, with an optional certificate or photo. Featured ones also show on the About
   and Experience pages.
 - **Contact**: the form saves the message to the inbox, emails the owner (Reply goes straight to the visitor) and
@@ -169,15 +171,17 @@ Zayun.sln
 │   │                       ICurrentUser, IAuthService
 │   ├── Shared/Errors/      one *Errors.cs per area
 │   ├── Shared/Results/     Result, Result<T>, PagedResult, PageRequest
+│   ├── Shared/Quotes/      QuoteRotation (picks the quote of the day)
 │   ├── Shared/Text/        Slugs (web addresses), TextRules (the checks entities make)
 │   └── ValueObjects/       ImageFile, ImageDimensions
 ├── Zayun.Application/
 │   ├── Common/Behaviours/  Logging, Validation, Caching, CacheInvalidation
 │   ├── Common/Caching/     [Cacheable], [InvalidatesCache], CacheTags
 │   ├── Common/Content/     ContentActions (publish, delete, reorder)
+│   ├── Common/Time/        UkCalendar (today's date and time to midnight in London)
 │   ├── Common/Validation/  shared rules (web links, label lists, reorder lists, uploads)
 │   └── Features/<Area>/    Commands/ Queries/ Dtos/ Validators/ — Auth, Projects, Publications, Presentations,
-│                           Experience, Skills, Awards, Profiles, Tags, Contact, Dashboard
+│                           Experience, Skills, Awards, Profiles, Quotes, Tags, Contact, Dashboard
 ├── Zayun.Persistence/
 │   ├── Configurations/     one IEntityTypeConfiguration per entity (+ EntityConfiguration, ContentEntityConfiguration)
 │   │   └── Identity/       ApplicationUser, ApplicationRole, role/admin seeders, RefreshTokenConfiguration
@@ -333,6 +337,7 @@ dotnet ef database update     --project Zayun.Persistence --startup-project Zayu
 | `PersonalDetails` | the owner's details (one row): name, headline, public email; phones and addresses as JSON, each with a "show on website" switch |
 | `SiteImages` | named pictures, one per slot (`OwnerPhoto`: the photo on About) |
 | `Profiles` | online profiles: platform (for the icon), name, link, label, where it's shown |
+| `Quotes` | quotes for the "Quote of the day": kind (quote / proverb / own saying), text, who said it, source, language + translation, series + story, "source checked", optional pinned day (month + day) |
 | `Tags` | the shared tag list: `Name` as shown, `NormalizedName` (UPPERCASE key, unique), `Aliases` (JSON) |
 | `ContactMessages` | the inbox |
 | `Documents` | private documents (file details as columns; the files are in `App_Data/private-documents`) |
@@ -396,6 +401,7 @@ Development). 🛡 = Admin role.
 | GET | `/personal-details` | name, headline, public email, phones switched on, town / country of addresses switched on |
 | GET | `/site-images` | named pictures, e.g. the owner's photo |
 | GET | `/profiles` | online profiles (`showInFooter`, `showOnContact`, `showOnResearch`) |
+| GET | `/quotes/today` | today's quote (UK date); 404 when none is published and source-checked |
 | GET | `/awards` | awards with pictures (`isFeatured` for the About / Experience highlights) |
 | POST | `/contact/messages` | the Contact form (rate limited) |
 </details>
@@ -463,7 +469,10 @@ shown as-is; front ends act on `code`.
 
 The public queries are cached for 60 minutes with `HybridCache` through `[Cacheable(tag)]`; every admin command that
 changes the same content carries `[InvalidatesCache(tag)]`, so edits show on the website straight away. Tags:
-`projects`, `publications`, `presentations`, `experience`, `skills`, `awards`, `profiles`, `site-images`, `personal-details` (`CacheTags.cs`).
+`projects`, `publications`, `presentations`, `experience`, `skills`, `awards`, `profiles`, `site-images`, `personal-details`, `quotes` (`CacheTags.cs`).
+
+**Quote of the day:** the UK date is part of the cache key, so a new day never gets yesterday's quote. Browsers may also
+keep the answer (`Cache-Control: public, max-age=…`) for at most an hour and never past UK midnight.
 
 **Never cached:** admin screens and the inbox.
 

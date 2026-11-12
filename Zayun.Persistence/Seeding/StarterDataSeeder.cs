@@ -11,8 +11,8 @@ namespace Zayun.Persistence.Seeding;
 
 /// <summary>
 /// Fills an empty database with the website's starter content from <c>starter-data.json</c>: projects (with
-/// pictures), publications, presentations (with pictures), experience areas, skill groups, core expertise, awards and
-/// online profiles.
+/// pictures), publications, presentations (with pictures), experience areas, skill groups, core expertise, awards,
+/// online profiles and quotes.
 /// </summary>
 /// <remarks>
 /// <para><b>Only when <c>SeedData:StarterDataEnabled</c> is true.</b></para>
@@ -20,7 +20,7 @@ namespace Zayun.Persistence.Seeding;
 /// deletes is never brought back by a restart.</para>
 /// <para><b>Pictures</b> go through the same <see cref="IImageProcessor"/> as admin uploads, so they're resized and
 /// stored exactly like uploaded ones.</para>
-/// <para>Everything is published, in the order of the file.</para>
+/// <para>Everything is published, in the order of the file, except quotes whose source isn't checked yet (drafts).</para>
 /// </remarks>
 internal static class StarterDataSeeder
 {
@@ -63,6 +63,7 @@ internal static class StarterDataSeeder
         await SeedAwardsAsync(context, data, pictures, logger, cancellationToken);
         await SeedProfilesAsync(context, data, logger, cancellationToken);
         await SeedPersonalDetailsAsync(context, data, logger, cancellationToken);
+        await SeedQuotesAsync(context, data, logger, cancellationToken);
     }
 
     // ───────────────────────────── Blocks ─────────────────────────────
@@ -194,6 +195,25 @@ internal static class StarterDataSeeder
 
         await context.SaveChangesAsync(ct);
         logger.LogInformation("Seeded {Count} profiles", data.Profiles.Count);
+    }
+
+    private static async Task SeedQuotesAsync(ZayunDbContext context, StarterData data, ILogger logger,
+                                              CancellationToken ct)
+    {
+        if (data.Quotes.Count == 0 || await context.Quotes.IgnoreQueryFilters().AnyAsync(ct)) return;
+
+        for (var i = 0; i < data.Quotes.Count; i++)
+        {
+            var q = data.Quotes[i];
+            context.Quotes.Add(Check($"quote by '{q.Author}'", () => Quote.Create(
+                new QuoteDetails(q.Kind, q.Text, q.Author, q.Source, q.Language, q.Translation, q.Series, q.Story,
+                                 q.SourceChecked, q.PinnedMonth, q.PinnedDay),
+                displayOrder: i,
+                isPublished: q.SourceChecked)));   // not checked yet → a draft until it is
+        }
+
+        await context.SaveChangesAsync(ct);
+        logger.LogInformation("Seeded {Count} quotes", data.Quotes.Count);
     }
 
     private static async Task SeedPersonalDetailsAsync(ZayunDbContext context, StarterData data, ILogger logger,

@@ -16,6 +16,7 @@ internal sealed class StarterData
     public List<StarterAward> Awards { get; set; } = [];
     public List<StarterProfile> Profiles { get; set; } = [];
     public StarterPersonalDetails? PersonalDetails { get; set; }
+    public List<StarterQuote> Quotes { get; set; } = [];
 }
 
 /// <summary>The owner's personal details (only what the website already showed).</summary>
@@ -25,6 +26,25 @@ internal sealed class StarterPersonalDetails
     public string? Headline { get; set; }
     public string? PublicEmail { get; set; }
     public List<PhoneInput> Phones { get; set; } = [];
+}
+
+/// <summary>
+/// One quote for the "Quote of the day" card. Published only when <see cref="SourceChecked"/> is true, so quotes whose
+/// wording or author still needs checking arrive as drafts.
+/// </summary>
+internal sealed class StarterQuote
+{
+    public QuoteKind Kind { get; set; } = QuoteKind.Quote;
+    public string Text { get; set; } = string.Empty;
+    public string Author { get; set; } = string.Empty;
+    public string? Source { get; set; }
+    public string? Language { get; set; }
+    public string? Translation { get; set; }
+    public string? Series { get; set; }
+    public string? Story { get; set; }
+    public bool SourceChecked { get; set; }
+    public int? PinnedMonth { get; set; }
+    public int? PinnedDay { get; set; }
 }
 
 /// <summary>One online profile.</summary>

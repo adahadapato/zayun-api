@@ -34,4 +34,7 @@ public static class CacheTags
 
     /// <summary>GET /api/personal-details (only what's switched on for the website).</summary>
     public const string PersonalDetails = "personal-details";
+
+    /// <summary>GET /api/quotes/today (the quote of the day).</summary>
+    public const string Quotes = "quotes";
 }
