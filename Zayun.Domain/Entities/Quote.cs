@@ -50,6 +50,15 @@ public class Quote : ContentEntity
     /// <summary>Longest picture description (alt text).</summary>
     public const int PictureAltMaxLength = 300;
 
+    /// <summary>Longest description for search engines and link previews (Google shows about 155 characters).</summary>
+    public const int SearchDescriptionMaxLength = 160;
+
+    /// <summary>Longest theme, e.g. "Artificial Intelligence".</summary>
+    public const int ThemeMaxLength = 40;
+
+    /// <summary>Most themes on one quote.</summary>
+    public const int MaxThemes = 5;
+
     /// <summary>Required by EF Core.</summary>
     protected Quote() { }
 
@@ -82,6 +91,14 @@ public class Quote : ContentEntity
 
     /// <summary>A one-line true story shown with it, e.g. how the Wright brothers learned from birds; null for none.</summary>
     public string? Story { get; private set; }
+
+    /// <summary>What the quote's page says under its title in Google and in link previews; null = made from the words
+    /// and who said them.</summary>
+    public string? SearchDescription { get; private set; }
+
+    /// <summary>Its themes, e.g. "Nature", "Flight": for "related quotes" and the theme filter on the quote pages. Their
+    /// own small list (not the shared tag list, which holds skills). Empty for none.</summary>
+    public List<string> Themes { get; private set; } = [];
 
     /// <summary>True once the wording and who said it have been checked. Only checked quotes are shown.</summary>
     public bool IsSourceChecked { get; private set; }
@@ -166,6 +183,9 @@ public class Quote : ContentEntity
         Story = TextRules.Optional(details.Story, StoryMaxLength, nameof(details.Story));
         IsSourceChecked = details.IsSourceChecked;
         (PinnedMonth, PinnedDay) = CheckPinnedDay(details.PinnedMonth, details.PinnedDay);
+        SearchDescription = TextRules.Optional(details.SearchDescription, SearchDescriptionMaxLength,
+                                               nameof(details.SearchDescription));
+        Themes = TextRules.Labels(details.Themes, ThemeMaxLength, MaxThemes, nameof(details.Themes));
     }
 
     /// <summary>Sets or replaces the still picture.</summary>
@@ -249,6 +269,8 @@ public class Quote : ContentEntity
 /// <param name="IsSourceChecked">The wording and who said it have been checked.</param>
 /// <param name="PinnedMonth">The month it's pinned to (optional; with <paramref name="PinnedDay"/>).</param>
 /// <param name="PinnedDay">The day it's pinned to (optional; with <paramref name="PinnedMonth"/>).</param>
+/// <param name="SearchDescription">What Google and link previews show (optional).</param>
+/// <param name="Themes">Its themes (optional; repeats are dropped, any letter case).</param>
 public sealed record QuoteDetails(
     QuoteKind Kind,
     string Text,
@@ -260,7 +282,9 @@ public sealed record QuoteDetails(
     string? Story,
     bool IsSourceChecked,
     int? PinnedMonth,
-    int? PinnedDay);
+    int? PinnedDay,
+    string? SearchDescription = null,
+    IReadOnlyList<string>? Themes = null);
 
 /// <summary>What <see cref="Quote.RemovePicture"/> took off, so the files can be deleted.</summary>
 /// <param name="Picture">The picture.</param>

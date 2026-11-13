@@ -752,6 +752,10 @@ namespace Zayun.Persistence.Migrations
                     b.Property<int?>("PinnedMonth")
                         .HasColumnType("int");
 
+                    b.Property<string>("SearchDescription")
+                        .HasMaxLength(160)
+                        .HasColumnType("nvarchar(160)");
+
                     b.Property<string>("Series")
                         .HasMaxLength(60)
                         .HasColumnType("nvarchar(60)");
@@ -775,6 +779,10 @@ namespace Zayun.Persistence.Migrations
                         .IsRequired()
                         .HasMaxLength(500)
                         .HasColumnType("nvarchar(500)");
+
+                    b.PrimitiveCollection<string>("Themes")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("Translation")
                         .HasMaxLength(500)

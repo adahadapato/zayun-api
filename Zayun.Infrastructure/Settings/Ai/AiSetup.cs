@@ -4,7 +4,8 @@ using Zayun.Domain.Interfaces;
 
 namespace Zayun.Infrastructure.Settings.Ai;
 
-/// <summary>Registers the AI tag check: Claude when <c>Ai:Enabled</c> is true and a key is set, otherwise none.</summary>
+/// <summary>Registers the AI helpers (the tag check and the quote helper): Claude when <c>Ai:Enabled</c> is true and a key
+/// is set, otherwise stand-ins that are never asked.</summary>
 internal static class AiSetup
 {
     /// <summary>Adds the AI tag check.</summary>
@@ -26,10 +27,16 @@ internal static class AiSetup
                 client.BaseAddress = new Uri(settings.BaseUrl.TrimEnd('/') + "/");
                 client.Timeout = TimeSpan.FromSeconds(settings.TimeoutSeconds + 5);
             });
+            services.AddHttpClient<IQuoteAdvisor, ClaudeQuoteAdvisor>(client =>
+            {
+                client.BaseAddress = new Uri(settings.BaseUrl.TrimEnd('/') + "/");
+                client.Timeout = TimeSpan.FromSeconds(settings.TimeoutSeconds + 5);
+            });
         }
         else
         {
             services.AddSingleton<ITagAdvisor, NoTagAdvisor>();
+            services.AddSingleton<IQuoteAdvisor, NoQuoteAdvisor>();
         }
 
         return services;

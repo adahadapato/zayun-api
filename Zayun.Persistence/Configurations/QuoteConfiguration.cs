@@ -33,6 +33,11 @@ public sealed class QuoteConfiguration : ContentEntityConfiguration<Quote>
         builder.Property(q => q.IsSourceChecked).IsRequired();
         builder.Property(q => q.PinnedMonth);
         builder.Property(q => q.PinnedDay);
+        builder.Property(q => q.SearchDescription).HasMaxLength(Quote.SearchDescriptionMaxLength);
+
+        // Themes are a JSON list in one column (like project tags). Quotes stored before the column existed must get
+        // "[]", not "": migration AddQuoteThemes sets defaultValue: "[]".
+        builder.PrimitiveCollection(q => q.Themes).IsRequired();
 
         builder.Property(q => q.PictureAlt).HasMaxLength(Quote.PictureAltMaxLength);
         builder.OwnsOne(q => q.Picture, picture => picture.MapImageFile());

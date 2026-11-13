@@ -88,6 +88,8 @@ public sealed record QuoteMediaDto(
 /// <param name="IsPublished">False for a draft.</param>
 /// <param name="CanBeShown">True when the website may show it (published and source checked).</param>
 /// <param name="Media">The picture (and animation), if any.</param>
+/// <param name="SearchDescription">What Google and link previews show; null = made from the words.</param>
+/// <param name="Themes">Its themes.</param>
 public sealed record QuoteDto(
     Guid Id,
     string Slug,
@@ -105,7 +107,9 @@ public sealed record QuoteDto(
     int DisplayOrder,
     bool IsPublished,
     bool CanBeShown,
-    QuoteMediaDto? Media)
+    QuoteMediaDto? Media,
+    string? SearchDescription,
+    IReadOnlyList<string> Themes)
 {
     /// <summary>Maps a quote.</summary>
     /// <param name="q">The quote.</param>
@@ -113,7 +117,7 @@ public sealed record QuoteDto(
     public static QuoteDto From(Quote q, IFileStorage storage) =>
         new(q.Id, q.Slug, q.Kind, q.Text, q.Author, q.Source, q.Language, q.Translation, q.Series, q.Story,
             q.IsSourceChecked, q.PinnedMonth, q.PinnedDay, q.DisplayOrder, q.IsPublished, QuoteRotation.IsShowable(q),
-            QuoteMediaDto.From(q, storage));
+            QuoteMediaDto.From(q, storage), q.SearchDescription, q.Themes);
 }
 
 /// <summary>One day of Admin → Quotes → "Coming up": which quote shows that day and why.</summary>
@@ -142,6 +146,8 @@ public sealed record QuotePreviewDayDto(
 /// <param name="Story">A one-line true story shown with it; null for none.</param>
 /// <param name="LastShown">The last UK date it was the quote of the day; null when it hasn't been yet.</param>
 /// <param name="Media">The picture (and animation), if any.</param>
+/// <param name="SearchDescription">What Google and link previews show; null = the website makes one from the words.</param>
+/// <param name="Themes">Its themes (for "related quotes" and the theme filter).</param>
 public sealed record ArchivedQuoteDto(
     Guid Id,
     string Slug,
@@ -154,7 +160,9 @@ public sealed record ArchivedQuoteDto(
     string? Series,
     string? Story,
     DateOnly? LastShown,
-    QuoteMediaDto? Media)
+    QuoteMediaDto? Media,
+    string? SearchDescription,
+    IReadOnlyList<string> Themes)
 {
     /// <summary>Maps an archive entry.</summary>
     /// <param name="entry">The quote and when it was last shown.</param>
@@ -163,6 +171,12 @@ public sealed record ArchivedQuoteDto(
     {
         var q = entry.Quote;
         return new(q.Id, q.Slug, q.Kind, q.Text, q.Author, q.Source, q.Language, q.Translation, q.Series, q.Story,
-                   entry.LastShown, QuoteMediaDto.From(q, storage));
+                   entry.LastShown, QuoteMediaDto.From(q, storage), q.SearchDescription, q.Themes);
     }
 }
+
+/// <summary>The AI helper's drafts for a quote (Admin → Quotes → "Suggest with AI"). Nothing is saved: the admin
+/// checks them, edits them and saves the quote as usual.</summary>
+/// <param name="SearchDescription">A description for Google and link previews.</param>
+/// <param name="Themes">Suggested themes (existing ones where they fit).</param>
+public sealed record QuoteSuggestionDto(string SearchDescription, IReadOnlyList<string> Themes);

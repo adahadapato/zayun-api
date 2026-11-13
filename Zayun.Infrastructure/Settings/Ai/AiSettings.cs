@@ -4,13 +4,14 @@ using Zayun.Domain.Constants;
 namespace Zayun.Infrastructure.Settings.Ai;
 
 /// <summary>
-/// The <c>"Ai"</c> section (keys in <see cref="AppSettings.Ai"/>): the AI tag check with Claude.
+/// The <c>"Ai"</c> section (keys in <see cref="AppSettings.Ai"/>): the AI helpers with Claude (the tag check, and the
+/// quote helper's Google description and themes).
 /// </summary>
 /// <remarks>
 /// <para><see cref="ApiKey"/> is a SECRET: User Secrets in development, the CI pipeline (ANTHROPIC_API_KEY) in
 /// production.</para>
 /// <para>With <see cref="Enabled"/> false, or no key, the API still starts: tags are then checked with the built-in
-/// rules only.</para>
+/// rules only, and "Suggest with AI" in Admin → Quotes says the helper is switched off.</para>
 /// </remarks>
 public sealed class AiSettings
 {

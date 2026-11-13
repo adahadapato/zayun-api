@@ -52,6 +52,9 @@ Production base address: **`https://api.zayun.net`** · local: **`https://localh
   and the first eight words, never changed. The list shows published, checked everyday quotes straight away; pinned
   and series quotes only once their day has come (so it stays a surprise). `/sitemap-quotes.xml` lists them all for
   search engines.
+- **Quote helper (AI)**: in Admin → Quotes, "Suggest with AI" drafts a quote's Google description and its themes
+  (reusing themes other quotes have). Drafts only: the admin edits and saves. Themes link related quotes on the
+  website. Uses the same `Ai` settings as the tag check; with AI off, the button says so.
 - **Awards**: awards and recognition, with an optional certificate or photo. Featured ones also show on the About
   and Experience pages.
 - **Contact**: the form saves the message to the inbox, emails the owner (Reply goes straight to the visitor) and
@@ -344,7 +347,7 @@ dotnet ef database update     --project Zayun.Persistence --startup-project Zayu
 | `PersonalDetails` | the owner's details (one row): name, headline, public email; phones and addresses as JSON, each with a "show on website" switch |
 | `SiteImages` | named pictures, one per slot (`OwnerPhoto`: the photo on About) |
 | `Profiles` | online profiles: platform (for the icon), name, link, label, where it's shown |
-| `Quotes` | quotes for the "Quote of the day": `Slug` (web address, unique, never changes), kind (quote / proverb / own saying), text, who said it, source, language + translation, series + story, "source checked", optional pinned day (month + day); optional picture (`Picture_*` columns, WebP) and MP4 animation (`Animation_*` columns), all null when there's none |
+| `Quotes` | quotes for the "Quote of the day": `Slug` (web address, unique, never changes), `SearchDescription` (Google / link previews), `Themes` (JSON list), kind (quote / proverb / own saying), text, who said it, source, language + translation, series + story, "source checked", optional pinned day (month + day); optional picture (`Picture_*` columns, WebP) and MP4 animation (`Animation_*` columns), all null when there's none |
 | `Tags` | the shared tag list: `Name` as shown, `NormalizedName` (UPPERCASE key, unique), `Aliases` (JSON) |
 | `ContactMessages` | the inbox |
 | `Documents` | private documents (file details as columns; the files are in `App_Data/private-documents`) |
@@ -432,7 +435,7 @@ Development). 🛡 = Admin role.
 | Personal details | GET / PUT `/personal-details` (everything, private parts included) |
 | Site pictures | PUT `/site-images/{slot}` (multipart: `file`, `altText`) · `/site-images/{slot}/description` `{ altText }`; DELETE `/site-images/{slot}` |
 | Profiles | GET/POST `/profiles`; PUT `/profiles/{id}` · `/{id}/published` · `/order`; DELETE `/profiles/{id}` |
-| Quotes | GET/POST `/quotes`; GET `/quotes/preview?from=&days=` ("Coming up": the quote for each day and why); PUT `/quotes/{id}` · `/{id}/published` · `/{id}/picture` (multipart: `file`, `altText`) · `/{id}/animation` (multipart: `file`, MP4 up to 8 MB, needs the picture) · `/order`; DELETE `/quotes/{id}` · `/{id}/picture` (and its animation) · `/{id}/animation` |
+| Quotes | POST `/quotes/suggest` (AI drafts of the Google description and themes; saves nothing; 409 when AI is off); GET/POST `/quotes`; GET `/quotes/preview?from=&days=` ("Coming up": the quote for each day and why); PUT `/quotes/{id}` · `/{id}/published` · `/{id}/picture` (multipart: `file`, `altText`) · `/{id}/animation` (multipart: `file`, MP4 up to 8 MB, needs the picture) · `/order`; DELETE `/quotes/{id}` · `/{id}/picture` (and its animation) · `/{id}/animation` |
 | Tags | GET `/tags`; POST `/tags/check` `{ name }` (Existing / New / Doubtful) · `/tags` `{ name }` · `/tags/{id}/merge` `{ intoTagId }`; PUT `/tags/{id}` `{ name }` (rename everywhere); DELETE `/tags/{id}` (only when unused) |
 | Inbox | GET `/contact-messages?status=&page=&pageSize=` · `/contact-messages/{id}`; PUT `/{id}/status`; DELETE `/{id}` |
 | Documents | GET `/documents?category=` · `/documents/{id}/link` (a 5-minute download link); POST `/documents` (multipart: `file`, `title`, `category`, `notes`); PUT `/documents/{id}` · `/{id}/file` (multipart: `file`); DELETE `/documents/{id}` |

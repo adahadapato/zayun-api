@@ -47,6 +47,12 @@ public interface IQuoteFields
 
     /// <summary>The day it's pinned to (optional; with <see cref="PinnedMonth"/>).</summary>
     int? PinnedDay { get; }
+
+    /// <summary>What Google and link previews show (optional; made from the words when empty).</summary>
+    string? SearchDescription { get; }
+
+    /// <summary>Its themes, e.g. "Nature", "Flight" (optional).</summary>
+    IReadOnlyList<string>? Themes { get; }
 }
 
 /// <summary>Turns the typed-in fields into the Domain's <see cref="QuoteDetails"/>.</summary>
@@ -56,7 +62,7 @@ internal static class QuoteFields
     /// <param name="c">The command.</param>
     public static QuoteDetails ToDetails(this IQuoteFields c) =>
         new(c.Kind, c.Text, c.Author, c.Source, c.Language, c.Translation, c.Series, c.Story, c.IsSourceChecked,
-            c.PinnedMonth, c.PinnedDay);
+            c.PinnedMonth, c.PinnedDay, c.SearchDescription, c.Themes);
 }
 
 /// <summary>Admin → New quote. It goes to the end of the rotation, and gets its web address (<see cref="QuoteSlugs"/>),
@@ -72,6 +78,8 @@ internal static class QuoteFields
 /// <param name="IsSourceChecked">The wording and who said it have been checked.</param>
 /// <param name="PinnedMonth">The month it's pinned to.</param>
 /// <param name="PinnedDay">The day it's pinned to.</param>
+/// <param name="SearchDescription">What Google and link previews show.</param>
+/// <param name="Themes">Its themes.</param>
 /// <param name="IsPublished">Publish it straight away, or keep it as a draft.</param>
 [InvalidatesCache(CacheTags.Quotes)]
 public sealed record CreateQuoteCommand(
@@ -86,6 +94,8 @@ public sealed record CreateQuoteCommand(
     bool IsSourceChecked,
     int? PinnedMonth,
     int? PinnedDay,
+    string? SearchDescription,
+    IReadOnlyList<string>? Themes,
     bool IsPublished) : IRequest<Result<QuoteDto>>, IQuoteFields;
 
 /// <summary>Handles <see cref="CreateQuoteCommand"/>.</summary>
@@ -117,6 +127,8 @@ public sealed class CreateQuoteCommandHandler(IQuoteRepository quotes, IUnitOfWo
 /// <param name="IsSourceChecked">The wording and who said it have been checked.</param>
 /// <param name="PinnedMonth">The month it's pinned to.</param>
 /// <param name="PinnedDay">The day it's pinned to.</param>
+/// <param name="SearchDescription">What Google and link previews show.</param>
+/// <param name="Themes">Its themes.</param>
 [InvalidatesCache(CacheTags.Quotes)]
 public sealed record UpdateQuoteCommand(
     Guid Id,
@@ -130,7 +142,9 @@ public sealed record UpdateQuoteCommand(
     string? Story,
     bool IsSourceChecked,
     int? PinnedMonth,
-    int? PinnedDay) : IRequest<Result<QuoteDto>>, IQuoteFields;
+    int? PinnedDay,
+    string? SearchDescription,
+    IReadOnlyList<string>? Themes) : IRequest<Result<QuoteDto>>, IQuoteFields;
 
 /// <summary>Handles <see cref="UpdateQuoteCommand"/>.</summary>
 public sealed class UpdateQuoteCommandHandler(IQuoteRepository quotes, IUnitOfWork unitOfWork, IFileStorage storage)

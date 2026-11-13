@@ -38,6 +38,10 @@ public abstract class QuoteFieldsValidator<T> : AbstractValidator<T> where T : I
         RuleFor(x => x.Story).MaximumLength(Quote.StoryMaxLength)
                              .WithMessage($"Keep the story under {Quote.StoryMaxLength} characters.");
 
+        RuleFor(x => x.SearchDescription).MaximumLength(Quote.SearchDescriptionMaxLength)
+            .WithMessage($"Keep the Google description under {Quote.SearchDescriptionMaxLength} characters (Google cuts the rest).");
+        RuleFor(x => x.Themes).Labels(Quote.ThemeMaxLength, Quote.MaxThemes, "themes");
+
         RuleFor(x => x.Language)
             .NotEmpty().When(x => !string.IsNullOrWhiteSpace(x.Translation))
             .WithMessage("A translation needs the original language, e.g. Annang.");
@@ -65,6 +69,26 @@ public sealed class UpdateQuoteCommandValidator : QuoteFieldsValidator<UpdateQuo
 {
     /// <summary>The rules (the shared ones, plus the Id).</summary>
     public UpdateQuoteCommandValidator() => RuleFor(x => x.Id).NotEmpty();
+}
+
+/// <summary>Checks <see cref="SuggestQuoteDetailsQuery"/>: only what the AI needs.</summary>
+public sealed class SuggestQuoteDetailsQueryValidator : AbstractValidator<SuggestQuoteDetailsQuery>
+{
+    /// <summary>The rules.</summary>
+    public SuggestQuoteDetailsQueryValidator()
+    {
+        RuleFor(x => x.Kind).IsInEnum().WithMessage("Please choose quote, proverb or own saying.");
+        RuleFor(x => x.Text).NotEmpty().WithMessage("Please enter the words first.")
+                            .MaximumLength(Quote.TextMaxLength)
+                            .WithMessage($"Keep the words under {Quote.TextMaxLength} characters.");
+        RuleFor(x => x.Author).NotEmpty().WithMessage("Please enter who said it first.")
+                              .MaximumLength(Quote.AuthorMaxLength)
+                              .WithMessage($"Keep who said it under {Quote.AuthorMaxLength} characters.");
+        RuleFor(x => x.Source).MaximumLength(Quote.SourceMaxLength);
+        RuleFor(x => x.Language).MaximumLength(Quote.LanguageMaxLength);
+        RuleFor(x => x.Translation).MaximumLength(Quote.TranslationMaxLength);
+        RuleFor(x => x.Story).MaximumLength(Quote.StoryMaxLength);
+    }
 }
 
 /// <summary>Checks <see cref="ReorderQuotesCommand"/>.</summary>

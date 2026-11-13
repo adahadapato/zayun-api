@@ -88,6 +88,14 @@ public static class QuoteEndpoints
             .Produces<IReadOnlyList<QuotePreviewDayDto>>()
             .ProducesValidationProblem();
 
+        admin.MapPost("/suggest", async (SuggestQuoteDetailsQuery query, ISender sender, CancellationToken ct) =>
+                (await sender.Send(query, ct)).ToHttp())
+            .WithName("SuggestQuoteDetails")
+            .WithSummary("AI helper: drafts a Google description and themes for the quote in the form (saves nothing; 409 when the AI is off or doesn't answer)")
+            .Produces<QuoteSuggestionDto>()
+            .ProducesValidationProblem()
+            .ProducesProblem(StatusCodes.Status409Conflict);
+
         admin.MapPost("/", async (CreateQuoteCommand command, ISender sender, CancellationToken ct) =>
                 (await sender.Send(command, ct)).ToHttp())
             .WithName("CreateQuote")
@@ -98,7 +106,8 @@ public static class QuoteEndpoints
         admin.MapPut("/{id:guid}", async (Guid id, QuoteRequest body, ISender sender, CancellationToken ct) =>
                 (await sender.Send(new UpdateQuoteCommand(id, body.Kind, body.Text, body.Author, body.Source,
                                                           body.Language, body.Translation, body.Series, body.Story,
-                                                          body.IsSourceChecked, body.PinnedMonth, body.PinnedDay),
+                                                          body.IsSourceChecked, body.PinnedMonth, body.PinnedDay,
+                                                          body.SearchDescription, body.Themes),
                                    ct)).ToHttp())
             .WithName("UpdateQuote")
             .WithSummary("Change a quote")
@@ -217,5 +226,6 @@ public static class QuoteEndpoints
     /// <summary>A quote's editable fields (the Id is in the route).</summary>
     public sealed record QuoteRequest(QuoteKind Kind, string Text, string Author, string? Source, string? Language,
                                       string? Translation, string? Series, string? Story, bool IsSourceChecked,
-                                      int? PinnedMonth, int? PinnedDay);
+                                      int? PinnedMonth, int? PinnedDay, string? SearchDescription,
+                                      IReadOnlyList<string>? Themes);
 }

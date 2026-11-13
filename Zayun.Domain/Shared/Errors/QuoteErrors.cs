@@ -12,6 +12,14 @@ public static class QuoteErrors
     public static readonly Error NoneToday =
         Error.NotFound("Quote.NoneToday", "There's no quote to show today.");
 
+    /// <summary>"Suggest with AI" while the AI is switched off (no key, or <c>Ai:Enabled</c> false).</summary>
+    public static readonly Error AiUnavailable = Error.Conflict(
+        "Quote.AiUnavailable", "The AI helper is switched off, so please write the description and themes yourself.");
+
+    /// <summary>The AI didn't answer in time or gave no usable answer.</summary>
+    public static readonly Error AiNoAnswer = Error.Conflict(
+        "Quote.AiNoAnswer", "The AI helper didn't answer this time. Please try again in a moment, or write them yourself.");
+
     /// <summary>Removing a picture that isn't there.</summary>
     public static readonly Error NoPicture = Error.NotFound("Quote.NoPicture", "This quote has no picture to remove.");
 
