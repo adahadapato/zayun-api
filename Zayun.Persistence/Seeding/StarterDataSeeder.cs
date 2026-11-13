@@ -4,6 +4,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using Zayun.Domain.Entities;
 using Zayun.Domain.Interfaces;
+using Zayun.Domain.Shared.Quotes;
 using Zayun.Domain.Shared.Text;
 using Zayun.Domain.ValueObjects;
 
@@ -202,12 +203,17 @@ internal static class StarterDataSeeder
     {
         if (data.Quotes.Count == 0 || await context.Quotes.IgnoreQueryFilters().AnyAsync(ct)) return;
 
+        var usedSlugs = new HashSet<string>(StringComparer.Ordinal);
         for (var i = 0; i < data.Quotes.Count; i++)
         {
             var q = data.Quotes[i];
+            var slug = QuoteSlugs.Make(q.Author, q.Text, q.Translation, usedSlugs);
+            usedSlugs.Add(slug);
+
             context.Quotes.Add(Check($"quote by '{q.Author}'", () => Quote.Create(
                 new QuoteDetails(q.Kind, q.Text, q.Author, q.Source, q.Language, q.Translation, q.Series, q.Story,
                                  q.SourceChecked, q.PinnedMonth, q.PinnedDay),
+                slug,
                 displayOrder: i,
                 isPublished: q.SourceChecked)));   // not checked yet → a draft until it is
         }

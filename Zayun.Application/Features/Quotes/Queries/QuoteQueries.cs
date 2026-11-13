@@ -32,6 +32,53 @@ public sealed class GetQuoteOfTheDayQueryHandler(IQuoteRepository quotes, IFileS
     }
 }
 
+/// <summary>
+/// The website's quote pages (<c>/quotes</c>): every quote the archive rule allows (<see cref="QuoteArchive"/>), the
+/// ones shown most recently first. Also used for the quote sitemap.
+/// </summary>
+/// <param name="Today">Today's UK date (part of the cache key, so the list moves on each day).</param>
+[Cacheable(CacheTags.Quotes, Minutes = 60)]
+public sealed record GetQuoteArchiveQuery(DateOnly Today) : IRequest<Result<IReadOnlyList<ArchivedQuoteDto>>>;
+
+/// <summary>Handles <see cref="GetQuoteArchiveQuery"/>.</summary>
+public sealed class GetQuoteArchiveQueryHandler(IQuoteRepository quotes, IFileStorage storage)
+    : IRequestHandler<GetQuoteArchiveQuery, Result<IReadOnlyList<ArchivedQuoteDto>>>
+{
+    /// <inheritdoc />
+    public async Task<Result<IReadOnlyList<ArchivedQuoteDto>>> Handle(GetQuoteArchiveQuery query, CancellationToken ct)
+    {
+        var published = await quotes.GetListAsync(publishedOnly: true, ct);
+        return Result.Success<IReadOnlyList<ArchivedQuoteDto>>(
+            QuoteArchive.Build(published, query.Today).Select(e => ArchivedQuoteDto.From(e, storage)).ToList());
+    }
+}
+
+/// <summary>
+/// One quote's page (<c>/quotes/{slug}</c>). Not found when the archive rule hides it: a draft, an unchecked quote,
+/// or a pinned / series quote whose day hasn't come yet.
+/// </summary>
+/// <param name="Slug">Its web address.</param>
+/// <param name="Today">Today's UK date.</param>
+[Cacheable(CacheTags.Quotes, Minutes = 60)]
+public sealed record GetArchivedQuoteQuery(string Slug, DateOnly Today) : IRequest<Result<ArchivedQuoteDto>>;
+
+/// <summary>Handles <see cref="GetArchivedQuoteQuery"/>.</summary>
+public sealed class GetArchivedQuoteQueryHandler(IQuoteRepository quotes, IFileStorage storage)
+    : IRequestHandler<GetArchivedQuoteQuery, Result<ArchivedQuoteDto>>
+{
+    /// <inheritdoc />
+    public async Task<Result<ArchivedQuoteDto>> Handle(GetArchivedQuoteQuery query, CancellationToken ct)
+    {
+        var published = await quotes.GetListAsync(publishedOnly: true, ct);
+        var entry = QuoteArchive.Build(published, query.Today)
+                                .FirstOrDefault(e => string.Equals(e.Quote.Slug, query.Slug, StringComparison.Ordinal));
+
+        return entry is null
+            ? Result.Failure<ArchivedQuoteDto>(QuoteErrors.NotFound)
+            : Result.Success(ArchivedQuoteDto.From(entry, storage));
+    }
+}
+
 /// <summary>Admin → Quotes: every quote, drafts included, in rotation order. Never cached.</summary>
 public sealed record GetAdminQuotesQuery : IRequest<Result<IReadOnlyList<QuoteDto>>>;
 

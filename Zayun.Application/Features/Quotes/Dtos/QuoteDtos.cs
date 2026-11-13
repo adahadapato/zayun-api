@@ -7,6 +7,7 @@ namespace Zayun.Application.Features.Quotes.Dtos;
 
 /// <summary>Today's quote, as the website shows it.</summary>
 /// <param name="Id">Its Id.</param>
+/// <param name="Slug">Its web address, for the link to its own page (<c>/quotes/{slug}</c>).</param>
 /// <param name="Date">The UK date it's the quote for.</param>
 /// <param name="Kind">Quote, proverb or the owner's own saying.</param>
 /// <param name="Text">The words, in their original language.</param>
@@ -19,6 +20,7 @@ namespace Zayun.Application.Features.Quotes.Dtos;
 /// <param name="Media">The picture (and animation), if any.</param>
 public sealed record QuoteOfTheDayDto(
     Guid Id,
+    string Slug,
     DateOnly Date,
     QuoteKind Kind,
     string Text,
@@ -35,7 +37,7 @@ public sealed record QuoteOfTheDayDto(
     /// <param name="date">The UK date.</param>
     /// <param name="storage">Turns stored paths into web addresses.</param>
     public static QuoteOfTheDayDto From(Quote q, DateOnly date, IFileStorage storage) =>
-        new(q.Id, date, q.Kind, q.Text, q.Author, q.Source, q.Language, q.Translation, q.Series, q.Story,
+        new(q.Id, q.Slug, date, q.Kind, q.Text, q.Author, q.Source, q.Language, q.Translation, q.Series, q.Story,
             QuoteMediaDto.From(q, storage));
 }
 
@@ -70,6 +72,7 @@ public sealed record QuoteMediaDto(
 
 /// <summary>A quote as Admin → Quotes shows it: everything, drafts included.</summary>
 /// <param name="Id">Its Id.</param>
+/// <param name="Slug">Its web address (<c>/quotes/{slug}</c>); never changes.</param>
 /// <param name="Kind">Quote, proverb or the owner's own saying.</param>
 /// <param name="Text">The words, in their original language.</param>
 /// <param name="Author">Who said it.</param>
@@ -87,6 +90,7 @@ public sealed record QuoteMediaDto(
 /// <param name="Media">The picture (and animation), if any.</param>
 public sealed record QuoteDto(
     Guid Id,
+    string Slug,
     QuoteKind Kind,
     string Text,
     string Author,
@@ -107,8 +111,8 @@ public sealed record QuoteDto(
     /// <param name="q">The quote.</param>
     /// <param name="storage">Turns stored paths into web addresses.</param>
     public static QuoteDto From(Quote q, IFileStorage storage) =>
-        new(q.Id, q.Kind, q.Text, q.Author, q.Source, q.Language, q.Translation, q.Series, q.Story, q.IsSourceChecked,
-            q.PinnedMonth, q.PinnedDay, q.DisplayOrder, q.IsPublished, QuoteRotation.IsShowable(q),
+        new(q.Id, q.Slug, q.Kind, q.Text, q.Author, q.Source, q.Language, q.Translation, q.Series, q.Story,
+            q.IsSourceChecked, q.PinnedMonth, q.PinnedDay, q.DisplayOrder, q.IsPublished, QuoteRotation.IsShowable(q),
             QuoteMediaDto.From(q, storage));
 }
 
@@ -124,3 +128,41 @@ public sealed record QuotePreviewDayDto(
     Guid? QuoteId,
     string? Text,
     string? Author);
+
+/// <summary>A quote on the website's quote pages (<c>/quotes</c> and <c>/quotes/{slug}</c>).</summary>
+/// <param name="Id">Its Id.</param>
+/// <param name="Slug">Its web address.</param>
+/// <param name="Kind">Quote, proverb or the owner's own saying.</param>
+/// <param name="Text">The words, in their original language.</param>
+/// <param name="Author">Who said it.</param>
+/// <param name="Source">Where it comes from; null when not known.</param>
+/// <param name="Language">The language when it isn't English; null for English.</param>
+/// <param name="Translation">The English translation; null when it's already English.</param>
+/// <param name="Series">A series, e.g. "Nature first"; null for none.</param>
+/// <param name="Story">A one-line true story shown with it; null for none.</param>
+/// <param name="LastShown">The last UK date it was the quote of the day; null when it hasn't been yet.</param>
+/// <param name="Media">The picture (and animation), if any.</param>
+public sealed record ArchivedQuoteDto(
+    Guid Id,
+    string Slug,
+    QuoteKind Kind,
+    string Text,
+    string Author,
+    string? Source,
+    string? Language,
+    string? Translation,
+    string? Series,
+    string? Story,
+    DateOnly? LastShown,
+    QuoteMediaDto? Media)
+{
+    /// <summary>Maps an archive entry.</summary>
+    /// <param name="entry">The quote and when it was last shown.</param>
+    /// <param name="storage">Turns stored paths into web addresses.</param>
+    public static ArchivedQuoteDto From(ArchivedQuote entry, IFileStorage storage)
+    {
+        var q = entry.Quote;
+        return new(q.Id, q.Slug, q.Kind, q.Text, q.Author, q.Source, q.Language, q.Translation, q.Series, q.Story,
+                   entry.LastShown, QuoteMediaDto.From(q, storage));
+    }
+}

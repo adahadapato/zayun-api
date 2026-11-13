@@ -48,6 +48,10 @@ Production base address: **`https://api.zayun.net`** · local: **`https://localh
   pinned to a day of the year (e.g. 17 December) wins on that day; on Sundays a quote from a series (e.g. "Nature
   first"), one per week; every other day the everyday rotation. Only published quotes whose source is checked are
   shown.
+- **Quote pages**: every quote has its own web address (`/quotes/{slug}` on the website), made once from who said it
+  and the first eight words, never changed. The list shows published, checked everyday quotes straight away; pinned
+  and series quotes only once their day has come (so it stays a surprise). `/sitemap-quotes.xml` lists them all for
+  search engines.
 - **Awards**: awards and recognition, with an optional certificate or photo. Featured ones also show on the About
   and Experience pages.
 - **Contact**: the form saves the message to the inbox, emails the owner (Reply goes straight to the visitor) and
@@ -173,7 +177,8 @@ Zayun.sln
 │   │                       ICurrentUser, IAuthService
 │   ├── Shared/Errors/      one *Errors.cs per area
 │   ├── Shared/Results/     Result, Result<T>, PagedResult, PageRequest
-│   ├── Shared/Quotes/      QuoteRotation (picks the quote of the day)
+│   ├── Shared/Quotes/      QuoteRotation (picks the quote of the day), QuoteArchive (which quotes the quote
+│   │                       pages show), QuoteSlugs (web addresses)
 │   ├── Shared/Text/        Slugs (web addresses), TextRules (the checks entities make)
 │   └── ValueObjects/       ImageFile, ImageDimensions, AnimationFile (MP4, stored as uploaded)
 ├── Zayun.Application/
@@ -339,7 +344,7 @@ dotnet ef database update     --project Zayun.Persistence --startup-project Zayu
 | `PersonalDetails` | the owner's details (one row): name, headline, public email; phones and addresses as JSON, each with a "show on website" switch |
 | `SiteImages` | named pictures, one per slot (`OwnerPhoto`: the photo on About) |
 | `Profiles` | online profiles: platform (for the icon), name, link, label, where it's shown |
-| `Quotes` | quotes for the "Quote of the day": kind (quote / proverb / own saying), text, who said it, source, language + translation, series + story, "source checked", optional pinned day (month + day); optional picture (`Picture_*` columns, WebP) and MP4 animation (`Animation_*` columns), all null when there's none |
+| `Quotes` | quotes for the "Quote of the day": `Slug` (web address, unique, never changes), kind (quote / proverb / own saying), text, who said it, source, language + translation, series + story, "source checked", optional pinned day (month + day); optional picture (`Picture_*` columns, WebP) and MP4 animation (`Animation_*` columns), all null when there's none |
 | `Tags` | the shared tag list: `Name` as shown, `NormalizedName` (UPPERCASE key, unique), `Aliases` (JSON) |
 | `ContactMessages` | the inbox |
 | `Documents` | private documents (file details as columns; the files are in `App_Data/private-documents`) |
@@ -359,6 +364,7 @@ restart.
 | Step | When | What |
 |---|---|---|
 | `TagListSeeder` | the `Tags` table is empty | builds the shared tag list from the names projects, experience areas and skill groups already use, tidying them on the way ("REST APIs" → "REST API", "EF Core" → "Entity Framework Core", "MS SQL" → "SQL Server") |
+| `QuoteSlugSeeder` | a quote has no web address (quotes stored before `AddQuoteSlug`) | gives it one, from who said it and the first eight words |
 
 ---
 
@@ -403,7 +409,9 @@ Development). 🛡 = Admin role.
 | GET | `/personal-details` | name, headline, public email, phones switched on, town / country of addresses switched on |
 | GET | `/site-images` | named pictures, e.g. the owner's photo |
 | GET | `/profiles` | online profiles (`showInFooter`, `showOnContact`, `showOnResearch`) |
-| GET | `/quotes/today` | today's quote (UK date); 404 when none is published and source-checked |
+| GET | `/quotes/today` | today's quote (UK date), with its `slug`; 404 when none is published and source-checked |
+| GET | `/quotes` | the quote pages: published, checked quotes, pinned / series ones only after their day; most recently shown first (`lastShown`) |
+| GET | `/quotes/{slug}` | one quote's page; 404 for drafts, unchecked quotes, and pinned / series quotes before their day |
 | GET | `/awards` | awards with pictures (`isFeatured` for the About / Experience highlights) |
 | POST | `/contact/messages` | the Contact form (rate limited) |
 </details>
@@ -474,8 +482,9 @@ The public queries are cached for 60 minutes with `HybridCache` through `[Cachea
 changes the same content carries `[InvalidatesCache(tag)]`, so edits show on the website straight away. Tags:
 `projects`, `publications`, `presentations`, `experience`, `skills`, `awards`, `profiles`, `site-images`, `personal-details`, `quotes` (`CacheTags.cs`).
 
-**Quote of the day:** the UK date is part of the cache key, so a new day never gets yesterday's quote. Browsers may also
-keep the answer (`Cache-Control: public, max-age=…`) for at most an hour and never past UK midnight.
+**Quote of the day and quote pages:** the UK date is part of the cache key, so a new day never gets yesterday's quote
+(or yesterday's list). Browsers may also keep the answer (`Cache-Control: public, max-age=…`) for at most an hour and
+never past UK midnight. The same goes for `/sitemap-quotes.xml` (outside `/api`).
 
 **Never cached:** admin screens and the inbox.
 

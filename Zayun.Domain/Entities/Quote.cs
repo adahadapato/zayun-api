@@ -1,5 +1,6 @@
 using Zayun.Domain.Enums;
 using Zayun.Domain.Shared.Errors;
+using Zayun.Domain.Shared.Quotes;
 using Zayun.Domain.Shared.Results;
 using Zayun.Domain.Shared.Text;
 using Zayun.Domain.ValueObjects;
@@ -19,6 +20,8 @@ namespace Zayun.Domain.Entities;
 /// <para><b>Picture and animation</b> (optional, e.g. for "Nature first"): a still picture (WebP, with its
 /// description), and an MP4 animation that needs the picture, because the picture is what visitors who ask for
 /// reduced motion see instead.</para>
+/// <para><b>Web address:</b> every quote has a <see cref="Slug"/> for its own page (<c>/quotes/{slug}</c>), made
+/// once by <see cref="QuoteSlugs"/> and never changed, so shared links keep working.</para>
 /// <para>Bad text is caught by the validators first, so the checks here THROW.</para>
 /// </remarks>
 public class Quote : ContentEntity
@@ -51,6 +54,10 @@ public class Quote : ContentEntity
     protected Quote() { }
 
     private Quote(Guid id, int displayOrder, bool isPublished) : base(id, displayOrder, isPublished) { }
+
+    /// <summary>Its web address on the website, e.g. "theodosius-dobzhansky-nothing-in-biology-makes-sense". Unique;
+    /// never changes once given. Empty only for quotes stored before addresses existed, until start-up fills them.</summary>
+    public string Slug { get; private set; } = string.Empty;
 
     /// <summary>Quote, proverb or the owner's own saying.</summary>
     public QuoteKind Kind { get; private set; }
@@ -104,16 +111,34 @@ public class Quote : ContentEntity
 
     /// <summary>Adds a quote.</summary>
     /// <param name="details">Everything about it except its place.</param>
+    /// <param name="slug">Its web address, from <see cref="QuoteSlugs.Make"/> (already checked to be unused).</param>
     /// <param name="displayOrder">Its place in the rotation.</param>
     /// <param name="isPublished">Shown straight away, or kept as a draft.</param>
     /// <returns>The new quote.</returns>
-    /// <exception cref="ArgumentException">Missing text, an unknown kind, or a translation without a language.</exception>
+    /// <exception cref="ArgumentException">Missing text, an unknown kind, a translation without a language, or a
+    /// web address that isn't a clean slug.</exception>
     /// <exception cref="ArgumentOutOfRangeException">Text too long, or a pinned day that doesn't exist.</exception>
-    public static Quote Create(QuoteDetails details, int displayOrder, bool isPublished)
+    public static Quote Create(QuoteDetails details, string slug, int displayOrder, bool isPublished)
     {
         var quote = new Quote(Guid.CreateVersion7(), displayOrder, isPublished);
         quote.Update(details);
+        quote.AssignSlug(slug);
         return quote;
+    }
+
+    /// <summary>Gives the quote its web address. Only once: an address never changes, so shared links keep working.
+    /// Used by <see cref="Create"/> and, for quotes stored before addresses existed, at start-up.</summary>
+    /// <param name="slug">The address, from <see cref="QuoteSlugs.Make"/> (already checked to be unused).</param>
+    /// <exception cref="ArgumentException">Not a clean slug.</exception>
+    /// <exception cref="InvalidOperationException">The quote already has a different address.</exception>
+    public void AssignSlug(string slug)
+    {
+        if (!Slugs.IsValid(slug))
+            throw new ArgumentException($"'{slug}' isn't a valid web address.", nameof(slug));
+        if (Slug.Length > 0 && Slug != slug)
+            throw new InvalidOperationException("A quote's web address never changes once given.");
+
+        Slug = slug;
     }
 
     /// <summary>Changes everything except its place.</summary>

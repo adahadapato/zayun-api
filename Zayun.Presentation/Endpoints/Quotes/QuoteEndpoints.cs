@@ -1,17 +1,24 @@
+using System.Text;
+using System.Xml.Linq;
 using MediatR;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.Options;
 using Zayun.Application.Common.Time;
 using Zayun.Application.Features.Quotes.Commands;
 using Zayun.Application.Features.Quotes.Dtos;
 using Zayun.Application.Features.Quotes.Queries;
 using Zayun.Domain.Constants;
 using Zayun.Domain.Enums;
+using Zayun.Domain.Shared.Errors;
+using Zayun.Domain.Shared.Text;
+using Zayun.Infrastructure.Settings.Application;
 using Zayun.Presentation.Endpoints.Shared;
 using Zayun.Presentation.Extensions;
 
 namespace Zayun.Presentation.Endpoints.Quotes;
 
-/// <summary><c>/api/quotes</c> (the website) and <c>/api/admin/quotes</c> (editing and the "Coming up" preview).</summary>
+/// <summary><c>/api/quotes</c> (the website: today's quote and the quote pages), <c>/api/admin/quotes</c> (editing and
+/// the "Coming up" preview), and <c>/sitemap-quotes.xml</c> (the quote pages for search engines).</summary>
 public static class QuoteEndpoints
 {
     /// <summary>How long a browser may keep today's quote: at most an hour (like the server's cache), and never past UK
@@ -27,19 +34,40 @@ public static class QuoteEndpoints
             {
                 var result = await sender.Send(new GetQuoteOfTheDayQuery(UkCalendar.Today(clock)), ct);
 
-                if (result.IsSuccess)
-                {
-                    var keepFor = UkCalendar.UntilMidnight(clock);
-                    if (keepFor > BrowserCacheLimit) keepFor = BrowserCacheLimit;
-                    http.Response.Headers.CacheControl = $"public, max-age={(int)keepFor.TotalSeconds}";
-                }
-
+                if (result.IsSuccess) SetBrowserCache(http, clock);
                 return result.ToHttp();
             })
             .WithTags("Quotes")
             .WithName("GetQuoteOfTheDay")
             .WithSummary("Today's quote (UK date): a quote pinned to today, otherwise the next one in the daily rotation")
             .Produces<QuoteOfTheDayDto>()
+            .ProducesProblem(StatusCodes.Status404NotFound);
+
+        api.MapGet("/quotes", async (ISender sender, TimeProvider clock, HttpContext http, CancellationToken ct) =>
+            {
+                var result = await sender.Send(new GetQuoteArchiveQuery(UkCalendar.Today(clock)), ct);
+                if (result.IsSuccess) SetBrowserCache(http, clock);
+                return result.ToHttp();
+            })
+            .WithTags("Quotes")
+            .WithName("GetQuoteArchive")
+            .WithSummary("The quote pages: published, checked quotes; pinned and series quotes only once their day has come; most recently shown first")
+            .Produces<IReadOnlyList<ArchivedQuoteDto>>();
+
+        api.MapGet("/quotes/{slug}", async (string slug, ISender sender, TimeProvider clock, HttpContext http,
+                                            CancellationToken ct) =>
+            {
+                // Anything that isn't a clean address can't be a quote: answer straight away (and don't cache it)
+                if (!Slugs.IsValid(slug)) return QuoteErrors.NotFound.ToProblem();
+
+                var result = await sender.Send(new GetArchivedQuoteQuery(slug, UkCalendar.Today(clock)), ct);
+                if (result.IsSuccess) SetBrowserCache(http, clock);
+                return result.ToHttp();
+            })
+            .WithTags("Quotes")
+            .WithName("GetArchivedQuote")
+            .WithSummary("One quote's page by its web address (404 for drafts, unchecked quotes, and pinned / series quotes before their day)")
+            .Produces<ArchivedQuoteDto>()
             .ProducesProblem(StatusCodes.Status404NotFound);
 
         var admin = api.MapGroup("/admin/quotes")
@@ -141,6 +169,49 @@ public static class QuoteEndpoints
             .ProducesValidationProblem();
 
         return api;
+    }
+
+    /// <summary>
+    /// <c>/sitemap-quotes.xml</c> (outside <c>/api</c>): the website's quote pages for search engines, <c>/quotes</c>
+    /// and one address per quote, always up to date. Listed in the website's robots.txt; zayun.net is verified in
+    /// Search Console as a whole domain, so Google accepts a sitemap on api.zayun.net for pages on zayun.net.
+    /// </summary>
+    /// <param name="app">The web application.</param>
+    /// <returns>The same builder, for chaining.</returns>
+    public static IEndpointRouteBuilder MapQuoteSitemap(this IEndpointRouteBuilder app)
+    {
+        app.MapGet("/sitemap-quotes.xml", async (ISender sender, TimeProvider clock, HttpContext http,
+                                                 IOptions<ApplicationSettings> settings, CancellationToken ct) =>
+            {
+                var result = await sender.Send(new GetQuoteArchiveQuery(UkCalendar.Today(clock)), ct);
+                if (result.IsFailure) return result.ToHttp();
+
+                var website = settings.Value.WebsiteBaseUrl.TrimEnd('/');
+                XNamespace ns = "http://www.sitemaps.org/schemas/sitemap/0.9";
+                var addresses = result.Value
+                    .Select(q => $"{website}/quotes/{q.Slug}")
+                    .Prepend($"{website}/quotes");
+
+                var document = new XDocument(
+                    new XDeclaration("1.0", "utf-8", null),
+                    new XElement(ns + "urlset", addresses.Select(a => new XElement(ns + "url", new XElement(ns + "loc", a)))));
+
+                SetBrowserCache(http, clock);
+                return Results.Text(document.Declaration + Environment.NewLine + document.Root, "application/xml",
+                                    Encoding.UTF8);
+            })
+            .ExcludeFromDescription();
+
+        return app;
+    }
+
+    /// <summary>Lets browsers (and Google) keep a quote answer for at most an hour (like the server's cache), and
+    /// never past UK midnight, so an edit shows within the hour and the next day's changes show straight away.</summary>
+    private static void SetBrowserCache(HttpContext http, TimeProvider clock)
+    {
+        var keepFor = UkCalendar.UntilMidnight(clock);
+        if (keepFor > BrowserCacheLimit) keepFor = BrowserCacheLimit;
+        http.Response.Headers.CacheControl = $"public, max-age={(int)keepFor.TotalSeconds}";
     }
 
     /// <summary>A quote's editable fields (the Id is in the route).</summary>

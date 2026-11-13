@@ -16,6 +16,7 @@ namespace Zayun.Persistence.Seeding;
 ///   <item><description>The first admin (from <c>SeedData</c>).</description></item>
 ///   <item><description>The starter content (only into empty tables).</description></item>
 ///   <item><description>The shared tag list (only while it's empty), tidying existing tag names.</description></item>
+///   <item><description>Web addresses for quotes stored before they had one.</description></item>
 /// </list>
 /// </summary>
 /// <remarks>Any failure is logged and stops start-up: a half-ready database is worse than an API that won't start.</remarks>
@@ -51,6 +52,9 @@ public static class DbSeeder
 
         await RunStepAsync(logger, "5: tag list",
             () => TagListSeeder.SeedAsync(context, logger, cancellationToken));
+
+        await RunStepAsync(logger, "6: quote web addresses",
+            () => QuoteSlugSeeder.SeedAsync(context, logger, cancellationToken));
 
         logger.LogInformation("Database initialization completed.");
     }

@@ -6,6 +6,7 @@ using Zayun.Domain.Entities;
 using Zayun.Domain.Enums;
 using Zayun.Domain.Interfaces;
 using Zayun.Domain.Shared.Errors;
+using Zayun.Domain.Shared.Quotes;
 using Zayun.Domain.Shared.Results;
 
 namespace Zayun.Application.Features.Quotes.Commands;
@@ -58,7 +59,8 @@ internal static class QuoteFields
             c.PinnedMonth, c.PinnedDay);
 }
 
-/// <summary>Admin → New quote. It goes to the end of the rotation.</summary>
+/// <summary>Admin → New quote. It goes to the end of the rotation, and gets its web address (<see cref="QuoteSlugs"/>),
+/// which then never changes.</summary>
 /// <param name="Kind">Quote, proverb or the owner's own saying.</param>
 /// <param name="Text">The words.</param>
 /// <param name="Author">Who said it.</param>
@@ -93,7 +95,8 @@ public sealed class CreateQuoteCommandHandler(IQuoteRepository quotes, IUnitOfWo
     /// <inheritdoc />
     public async Task<Result<QuoteDto>> Handle(CreateQuoteCommand c, CancellationToken ct)
     {
-        var quote = Quote.Create(c.ToDetails(), await quotes.GetNextDisplayOrderAsync(ct), c.IsPublished);
+        var slug = QuoteSlugs.Make(c.Author, c.Text, c.Translation, await quotes.GetUsedSlugsAsync(ct));
+        var quote = Quote.Create(c.ToDetails(), slug, await quotes.GetNextDisplayOrderAsync(ct), c.IsPublished);
 
         quotes.Add(quote);
         await unitOfWork.SaveChangesAsync(ct);

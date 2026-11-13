@@ -17,7 +17,7 @@ namespace Zayun.Persistence.Migrations
         {
 #pragma warning disable 612, 618
             modelBuilder
-                .HasAnnotation("ProductVersion", "10.0.14")
+                .HasAnnotation("ProductVersion", "10.0.15")
                 .HasAnnotation("Relational:MaxIdentifierLength", 128);
 
             SqlServerModelBuilderExtensions.UseIdentityColumns(modelBuilder);
@@ -756,6 +756,13 @@ namespace Zayun.Persistence.Migrations
                         .HasMaxLength(60)
                         .HasColumnType("nvarchar(60)");
 
+                    b.Property<string>("Slug")
+                        .IsRequired()
+                        .ValueGeneratedOnAdd()
+                        .HasMaxLength(160)
+                        .HasColumnType("nvarchar(160)")
+                        .HasDefaultValue("");
+
                     b.Property<string>("Source")
                         .HasMaxLength(300)
                         .HasColumnType("nvarchar(300)");
@@ -777,6 +784,10 @@ namespace Zayun.Persistence.Migrations
                         .HasColumnType("datetime2");
 
                     b.HasKey("Id");
+
+                    b.HasIndex("Slug")
+                        .IsUnique()
+                        .HasFilter("[IsDeleted] = 0 AND [Slug] <> ''");
 
                     b.HasIndex("IsPublished", "DisplayOrder");
 

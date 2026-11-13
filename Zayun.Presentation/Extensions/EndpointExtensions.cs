@@ -19,7 +19,7 @@ namespace Zayun.Presentation.Extensions;
 /// <summary>Every route of the API, in one place.</summary>
 public static class EndpointExtensions
 {
-    /// <summary>Maps all endpoint groups under <c>/api</c>, plus <c>/private-files</c> and <c>/health</c>.</summary>
+    /// <summary>Maps all endpoint groups under <c>/api</c>, plus <c>/private-files</c>, <c>/sitemap-quotes.xml</c> and <c>/health</c>.</summary>
     /// <param name="app">The web application.</param>
     /// <returns>The same application, for chaining.</returns>
     public static WebApplication MapZayunEndpoints(this WebApplication app)
@@ -38,7 +38,7 @@ public static class EndpointExtensions
         api.MapProfileEndpoints();           // /api/profiles        + /api/admin/profiles
         api.MapSiteImageEndpoints();         // /api/site-images     + /api/admin/site-images
         api.MapPersonalDetailsEndpoints();   // /api/personal-details + /api/admin/personal-details
-        api.MapQuoteEndpoints();             // /api/quotes/today
+        api.MapQuoteEndpoints();             // /api/quotes          + /api/admin/quotes
         api.MapContactEndpoints();           // /api/contact         + /api/admin/contact-messages
         api.MapDashboardEndpoints();         //                        /api/admin/overview
         api.MapDocumentEndpoints();          //                        /api/admin/documents
@@ -46,7 +46,10 @@ public static class EndpointExtensions
         // 2. Private documents through signed links, e.g. /private-files/…?name=…&expires=…&sig=… (not in Swagger)
         app.MapPrivateFiles();
 
-        // 3. Health (not in Swagger)
+        // 3. The quote pages for search engines, /sitemap-quotes.xml (not in Swagger)
+        app.MapQuoteSitemap();
+
+        // 4. Health (not in Swagger)
         app.MapGet("/health", () => Results.Ok(new { status = "healthy", timestamp = DateTime.UtcNow }))
            .ExcludeFromDescription();
 

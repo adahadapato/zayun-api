@@ -1,6 +1,7 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 using Zayun.Domain.Entities;
+using Zayun.Domain.Shared.Text;
 using Zayun.Domain.ValueObjects;
 using Zayun.Persistence.Mappings;
 
@@ -10,6 +11,9 @@ namespace Zayun.Persistence.Configurations;
 /// Table <c>Quotes</c>: quotes, proverbs and the owner's sayings for the "Quote of the day" card, with the optional
 /// picture (<c>Picture_Path</c>…) and animation (<c>Animation_Path</c>…) stored as columns, all null when there is none.
 /// </summary>
+/// <remarks><c>Slug</c> is unique among quotes that aren't deleted. Empty slugs are left out of the index: quotes stored
+/// before the column existed get an empty one from the migration, and start-up fills them in
+/// (<c>QuoteSlugSeeder</c>).</remarks>
 public sealed class QuoteConfiguration : ContentEntityConfiguration<Quote>
 {
     /// <inheritdoc />
@@ -17,6 +21,7 @@ public sealed class QuoteConfiguration : ContentEntityConfiguration<Quote>
     {
         builder.ToTable("Quotes");
 
+        builder.Property(q => q.Slug).IsRequired().HasMaxLength(Slugs.MaxLength).HasDefaultValue(string.Empty);
         builder.Property(q => q.Kind).IsRequired();
         builder.Property(q => q.Text).IsRequired().HasMaxLength(Quote.TextMaxLength);
         builder.Property(q => q.Author).IsRequired().HasMaxLength(Quote.AuthorMaxLength);
@@ -42,5 +47,6 @@ public sealed class QuoteConfiguration : ContentEntityConfiguration<Quote>
         builder.Ignore(q => q.IsPinned);   // worked out from PinnedMonth / PinnedDay, not stored
 
         builder.HasIndex(q => new { q.PinnedMonth, q.PinnedDay });   // "is anything pinned to today?"
+        builder.HasIndex(q => q.Slug).IsUnique().HasFilter("[IsDeleted] = 0 AND [Slug] <> ''");
     }
 }
