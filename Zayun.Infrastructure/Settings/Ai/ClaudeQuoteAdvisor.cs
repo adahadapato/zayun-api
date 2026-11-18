@@ -52,7 +52,7 @@ internal sealed class ClaudeQuoteAdvisor(ClaudeMessages claude, ILogger<ClaudeQu
         if (!claude.IsAvailable) return null;
 
         var json = await claude.AskForJsonAsync(Helper, Instructions, Describe(quote, existingThemes), AdviceSchema,
-                                                maxTokens: 400, cancellationToken);
+                                                cancellationToken);
         if (json is null) return null;
 
         try

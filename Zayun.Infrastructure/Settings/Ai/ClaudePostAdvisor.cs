@@ -52,8 +52,7 @@ internal sealed class ClaudePostAdvisor(ClaudeMessages claude, ILogger<ClaudePos
         ArgumentNullException.ThrowIfNull(item);
         if (!claude.IsAvailable) return null;
 
-        var json = await claude.AskForJsonAsync(Helper, Instructions, Describe(item), DraftSchema, maxTokens: 500,
-                                                cancellationToken);
+        var json = await claude.AskForJsonAsync(Helper, Instructions, Describe(item), DraftSchema, cancellationToken);
         if (json is null) return null;
 
         try

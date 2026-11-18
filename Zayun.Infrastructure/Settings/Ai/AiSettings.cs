@@ -32,6 +32,12 @@ public sealed class AiSettings
     [Required, Url]
     public string BaseUrl { get; set; } = "https://api.anthropic.com";
 
+    /// <summary>The longest answer allowed, in tokens (the same for every helper).</summary>
+    /// <remarks>Only the tokens actually used are paid for, so a generous limit costs nothing extra; a tight one cuts
+    /// answers off ("no usable answer (max_tokens)" in the log).</remarks>
+    [Range(256, 16000)]
+    public int MaxTokens { get; set; } = 4000;
+
     /// <summary>How long to wait for an answer, in seconds (the same for every helper).</summary>
     /// <remarks>20 by default: the first request with a new answer shape can take noticeably longer than later ones,
     /// and the quote helper writes more than the tag check.</remarks>

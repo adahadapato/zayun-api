@@ -539,6 +539,7 @@ thing is never written two ways.
 | `Ai:Enabled` | `true` | use the AI check when a key is set |
 | `Ai:ApiKey` | empty | **secret** (User Secrets / `ANTHROPIC_API_KEY` in GitHub). Empty = built-in rules only; the API still starts |
 | `Ai:Model` | `claude-haiku-5-5` | fast and cheap is plenty for tags |
+| `Ai:MaxTokens` | `4000` | longest answer, the same for every helper; only tokens used are paid for. Too low cuts answers off ("max_tokens" in the log) |
 | `Ai:TimeoutSeconds` | `20` | the same for every AI helper (they share one connection, `ClaudeMessages`); after this the tag name is treated as new and "Suggest with AI" says it didn't answer |
 
 ---

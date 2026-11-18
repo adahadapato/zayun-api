@@ -51,8 +51,7 @@ internal sealed class ClaudeTagAdvisor(ClaudeMessages claude, ILogger<ClaudeTagA
             $"Existing tags ({existingTags.Count}):\n{string.Join("\n", existingTags.Select(t => "- " + t))}" +
             $"\n\nNew name typed by the admin: \"{name}\"";
 
-        var json = await claude.AskForJsonAsync(Helper, Instructions, question, VerdictSchema, maxTokens: 300,
-                                                cancellationToken);
+        var json = await claude.AskForJsonAsync(Helper, Instructions, question, VerdictSchema, cancellationToken);
         if (json is null) return null;
 
         try

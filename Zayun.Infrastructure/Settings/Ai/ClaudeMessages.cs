@@ -18,7 +18,7 @@ namespace Zayun.Infrastructure.Settings.Ai;
 /// <para>Never throws for the AI: no key, a timeout, an error status, a refusal or an unreadable answer is logged and
 /// returns null, so each helper can carry on without the AI.</para>
 /// <para>Log lines start with "AI {helper}", for example <c>AI quote helper timed out after 20s.</c> or
-/// <c>AI tag check answered in 1840 ms.</c></para>
+/// <c>AI tag check answered in 1840 ms, 62 tokens.</c></para>
 /// </remarks>
 internal sealed class ClaudeMessages(HttpClient http, IOptions<AiSettings> options, ILogger<ClaudeMessages> logger)
 {
@@ -38,18 +38,17 @@ internal sealed class ClaudeMessages(HttpClient http, IOptions<AiSettings> optio
     /// <param name="instructions">The helper's standing instructions (the system prompt).</param>
     /// <param name="question">This request's details (the user message).</param>
     /// <param name="schema">The JSON shape the answer must have (a JSON Schema object).</param>
-    /// <param name="maxTokens">The longest answer allowed.</param>
     /// <param name="cancellationToken">Cancels the call.</param>
     /// <returns>The answer's JSON text, or null when there's no usable answer (already logged).</returns>
     public async Task<string?> AskForJsonAsync(string helper, string instructions, string question, object schema,
-                                               int maxTokens, CancellationToken cancellationToken = default)
+                                               CancellationToken cancellationToken = default)
     {
         var settings = options.Value;
         if (!settings.IsUsable) return null;
 
         var request = new MessagesRequest(
             Model: settings.Model,
-            MaxTokens: maxTokens,
+            MaxTokens: settings.MaxTokens,
             System: instructions,
             Messages: [new Message("user", question)],
             OutputConfig: new OutputConfig(new OutputFormat("json_schema", schema)));
@@ -81,8 +80,8 @@ internal sealed class ClaudeMessages(HttpClient http, IOptions<AiSettings> optio
 
             if (answer is null || answer.StopReason is "refusal" or "max_tokens")
             {
-                logger.LogWarning("AI {Helper} gave no usable answer ({StopReason}) after {Ms} ms.",
-                                  helper, answer?.StopReason, elapsedMs);
+                logger.LogWarning("AI {Helper} gave no usable answer ({StopReason}) after {Ms} ms, {Tokens} of {Max} tokens.",
+                                  helper, answer?.StopReason, elapsedMs, answer?.Usage?.OutputTokens, settings.MaxTokens);
                 return null;
             }
 
@@ -93,7 +92,8 @@ internal sealed class ClaudeMessages(HttpClient http, IOptions<AiSettings> optio
                 return null;
             }
 
-            logger.LogInformation("AI {Helper} answered in {Ms} ms.", helper, elapsedMs);
+            logger.LogInformation("AI {Helper} answered in {Ms} ms, {Tokens} tokens.", helper, elapsedMs,
+                                  answer.Usage?.OutputTokens);
             return text;
         }
         catch (OperationCanceledException) when (!cancellationToken.IsCancellationRequested)
@@ -125,7 +125,10 @@ internal sealed class ClaudeMessages(HttpClient http, IOptions<AiSettings> optio
 
     private sealed record MessagesResponse(
         IReadOnlyList<ContentBlock>? Content,
-        [property: JsonPropertyName("stop_reason")] string? StopReason);
+        [property: JsonPropertyName("stop_reason")] string? StopReason,
+        Usage? Usage);
+
+    private sealed record Usage([property: JsonPropertyName("output_tokens")] int? OutputTokens);
 
     private sealed record ContentBlock(string Type, string? Text);
 }
