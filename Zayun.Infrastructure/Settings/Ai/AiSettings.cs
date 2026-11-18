@@ -32,9 +32,11 @@ public sealed class AiSettings
     [Required, Url]
     public string BaseUrl { get; set; } = "https://api.anthropic.com";
 
-    /// <summary>How long to wait for an answer, in seconds.</summary>
+    /// <summary>How long to wait for an answer, in seconds (the same for every helper).</summary>
+    /// <remarks>20 by default: the first request with a new answer shape can take noticeably longer than later ones,
+    /// and the quote helper writes more than the tag check.</remarks>
     [Range(2, 60)]
-    public int TimeoutSeconds { get; set; } = 10;
+    public int TimeoutSeconds { get; set; } = 20;
 
     /// <summary>True when the AI check can be used.</summary>
     public bool IsUsable => Enabled && !string.IsNullOrWhiteSpace(ApiKey);

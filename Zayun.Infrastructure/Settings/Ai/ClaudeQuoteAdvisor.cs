@@ -1,17 +1,14 @@
-using System.Net.Http.Json;
 using System.Text.Json;
-using System.Text.Json.Serialization;
 using Microsoft.Extensions.Logging;
-using Microsoft.Extensions.Options;
 using Zayun.Domain.Enums;
 using Zayun.Domain.Interfaces;
 
 namespace Zayun.Infrastructure.Settings.Ai;
 
 /// <summary>
-/// <see cref="IQuoteAdvisor"/> with Claude (the Anthropic Messages API), built like <see cref="ClaudeTagAdvisor"/>:
-/// one short request when the admin presses "Suggest with AI"; the answer is JSON in a fixed shape (structured
-/// outputs).
+/// <see cref="IQuoteAdvisor"/> with Claude, through the shared <see cref="ClaudeMessages"/> connection (the same one the
+/// tag check uses): one short request when the admin presses "Suggest with AI"; the answer is JSON in a fixed shape
+/// (structured outputs).
 /// </summary>
 /// <remarks>
 /// <para>Never throws for the AI: no key, a timeout, a refusal or an unreadable answer is logged and returns null.</para>
@@ -19,15 +16,9 @@ namespace Zayun.Infrastructure.Settings.Ai;
 /// <para>The AI is told to use only the facts it's given (who said it, the source, the story), never to add dates,
 /// places or claims of its own: the description appears in Google next to the owner's name.</para>
 /// </remarks>
-internal sealed class ClaudeQuoteAdvisor(HttpClient http, IOptions<AiSettings> options,
-                                         ILogger<ClaudeQuoteAdvisor> logger) : IQuoteAdvisor
+internal sealed class ClaudeQuoteAdvisor(ClaudeMessages claude, ILogger<ClaudeQuoteAdvisor> logger) : IQuoteAdvisor
 {
-    private const string AnthropicVersion = "2023-06-01";
-
-    private static readonly JsonSerializerOptions Json = new(JsonSerializerDefaults.Web)
-    {
-        DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull
-    };
+    private const string Helper = "quote helper";
 
     private const string Instructions =
         """
@@ -51,69 +42,35 @@ internal sealed class ClaudeQuoteAdvisor(HttpClient http, IOptions<AiSettings> o
         """;
 
     /// <inheritdoc />
-    public bool IsAvailable => options.Value.IsUsable;
+    public bool IsAvailable => claude.IsAvailable;
 
     /// <inheritdoc />
     public async Task<QuoteAdvice?> SuggestAsync(QuoteAdviceRequest quote, IReadOnlyList<string> existingThemes,
                                                  CancellationToken cancellationToken = default)
     {
         ArgumentNullException.ThrowIfNull(quote);
-        var settings = options.Value;
-        if (!settings.IsUsable) return null;
+        if (!claude.IsAvailable) return null;
 
-        var request = new MessagesRequest(
-            Model: settings.Model,
-            MaxTokens: 400,
-            System: Instructions,
-            Messages: [new Message("user", Describe(quote, existingThemes))],
-            OutputConfig: new OutputConfig(new OutputFormat("json_schema", AdviceSchema)));
+        var json = await claude.AskForJsonAsync(Helper, Instructions, Describe(quote, existingThemes), AdviceSchema,
+                                                maxTokens: 400, cancellationToken);
+        if (json is null) return null;
 
         try
         {
-            using var timeout = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
-            timeout.CancelAfter(TimeSpan.FromSeconds(settings.TimeoutSeconds));
-
-            using var message = new HttpRequestMessage(HttpMethod.Post, "v1/messages")
+            var advice = JsonSerializer.Deserialize<Advice>(json, ClaudeMessages.Json);
+            if (advice is null || string.IsNullOrWhiteSpace(advice.Description))
             {
-                Content = JsonContent.Create(request, options: Json)
-            };
-            message.Headers.Add("x-api-key", settings.ApiKey);
-            message.Headers.Add("anthropic-version", AnthropicVersion);
-
-            using var response = await http.SendAsync(message, timeout.Token);
-            if (!response.IsSuccessStatusCode)
-            {
-                var body = await response.Content.ReadAsStringAsync(timeout.Token);
-                logger.LogWarning("AI quote helper failed: {Status} {Body}", (int)response.StatusCode,
-                                  body.Length > 500 ? body[..500] : body);
+                logger.LogWarning("AI quote helper: the answer had no description.");
                 return null;
             }
-
-            var answer = await response.Content.ReadFromJsonAsync<MessagesResponse>(Json, timeout.Token);
-            if (answer is null || answer.StopReason is "refusal" or "max_tokens")
-            {
-                logger.LogWarning("AI quote helper gave no usable answer ({StopReason}).", answer?.StopReason);
-                return null;
-            }
-
-            var text = answer.Content?.FirstOrDefault(c => c.Type == "text")?.Text;
-            if (string.IsNullOrWhiteSpace(text)) return null;
-
-            var advice = JsonSerializer.Deserialize<Advice>(text, Json);
-            if (advice is null || string.IsNullOrWhiteSpace(advice.Description)) return null;
 
             logger.LogInformation("AI quote helper: drafted a description and {Count} themes for a quote by {Author}",
                                   advice.Themes?.Count ?? 0, quote.Author);
             return new QuoteAdvice(advice.Description.Trim(), advice.Themes ?? []);
         }
-        catch (OperationCanceledException) when (!cancellationToken.IsCancellationRequested)
+        catch (JsonException ex)
         {
-            logger.LogWarning("AI quote helper timed out after {Seconds}s.", settings.TimeoutSeconds);
-            return null;
-        }
-        catch (Exception ex) when (ex is HttpRequestException or JsonException or NotSupportedException)
-        {
-            logger.LogWarning(ex, "AI quote helper failed.");
+            logger.LogWarning(ex, "AI quote helper: the answer couldn't be read.");
             return null;
         }
     }
@@ -147,8 +104,6 @@ internal sealed class ClaudeQuoteAdvisor(HttpClient http, IOptions<AiSettings> o
         return string.Join("\n", lines);
     }
 
-    // ───────────────────────────── Request and answer shapes ─────────────────────────────
-
     /// <summary>The JSON the model must answer with.</summary>
     private static readonly object AdviceSchema = new
     {
@@ -161,25 +116,6 @@ internal sealed class ClaudeQuoteAdvisor(HttpClient http, IOptions<AiSettings> o
         required = new[] { "description", "themes" },
         additionalProperties = false
     };
-
-    private sealed record MessagesRequest(
-        string Model,
-        [property: JsonPropertyName("max_tokens")] int MaxTokens,
-        string System,
-        IReadOnlyList<Message> Messages,
-        [property: JsonPropertyName("output_config")] OutputConfig OutputConfig);
-
-    private sealed record Message(string Role, string Content);
-
-    private sealed record OutputConfig(OutputFormat Format);
-
-    private sealed record OutputFormat(string Type, object Schema);
-
-    private sealed record MessagesResponse(
-        IReadOnlyList<ContentBlock>? Content,
-        [property: JsonPropertyName("stop_reason")] string? StopReason);
-
-    private sealed record ContentBlock(string Type, string? Text);
 
     private sealed record Advice(string? Description, IReadOnlyList<string>? Themes);
 }

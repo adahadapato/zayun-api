@@ -32,7 +32,7 @@ public static class DependencyInjection
         services.AddStorage(configuration);
         services.AddImages(configuration);
         services.AddZayunIdentity(configuration);
-        services.AddAi(configuration);             // the AI tag check (Claude), or the built-in rules only
+        services.AddAi(configuration);             // the AI helpers (Claude, one shared connection), or stand-ins
 
         return services;
     }

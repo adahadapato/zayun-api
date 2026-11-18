@@ -1,31 +1,22 @@
-using System.Net.Http.Json;
 using System.Text.Json;
-using System.Text.Json.Serialization;
 using Microsoft.Extensions.Logging;
-using Microsoft.Extensions.Options;
 using Zayun.Domain.Interfaces;
 using Zayun.Domain.Shared.Text;
 
 namespace Zayun.Infrastructure.Settings.Ai;
 
 /// <summary>
-/// <see cref="ITagAdvisor"/> with Claude (the Anthropic Messages API). One short request per NEW tag name the
-/// built-in rules don't know; the answer is JSON in a fixed shape (structured outputs).
+/// <see cref="ITagAdvisor"/> with Claude, through the shared <see cref="ClaudeMessages"/> connection. One short request
+/// per NEW tag name the built-in rules don't know; the answer is JSON in a fixed shape (structured outputs).
 /// </summary>
 /// <remarks>
 /// <para>Never throws for the AI: no key, a timeout, a refusal or an unreadable answer is logged and returns null, so
 /// the name is simply treated as new.</para>
 /// <para>Only the typed name and the existing tag names are sent: no personal data.</para>
 /// </remarks>
-internal sealed class ClaudeTagAdvisor(HttpClient http, IOptions<AiSettings> options, ILogger<ClaudeTagAdvisor> logger)
-    : ITagAdvisor
+internal sealed class ClaudeTagAdvisor(ClaudeMessages claude, ILogger<ClaudeTagAdvisor> logger) : ITagAdvisor
 {
-    private const string AnthropicVersion = "2023-06-01";
-
-    private static readonly JsonSerializerOptions Json = new(JsonSerializerDefaults.Web)
-    {
-        DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull
-    };
+    private const string Helper = "tag check";
 
     private const string Instructions =
         """
@@ -48,59 +39,25 @@ internal sealed class ClaudeTagAdvisor(HttpClient http, IOptions<AiSettings> opt
         """;
 
     /// <inheritdoc />
-    public bool IsAvailable => options.Value.IsUsable;
+    public bool IsAvailable => claude.IsAvailable;
 
     /// <inheritdoc />
     public async Task<TagAdvice?> AdviseAsync(string name, IReadOnlyList<string> existingTags,
                                               CancellationToken cancellationToken = default)
     {
-        var settings = options.Value;
-        if (!settings.IsUsable || string.IsNullOrWhiteSpace(name)) return null;
+        if (!claude.IsAvailable || string.IsNullOrWhiteSpace(name)) return null;
 
-        var request = new MessagesRequest(
-            Model: settings.Model,
-            MaxTokens: 300,
-            System: Instructions,
-            Messages:
-            [
-                new Message("user",
-                    $"Existing tags ({existingTags.Count}):\n{string.Join("\n", existingTags.Select(t => "- " + t))}" +
-                    $"\n\nNew name typed by the admin: \"{name}\"")
-            ],
-            OutputConfig: new OutputConfig(new OutputFormat("json_schema", VerdictSchema)));
+        var question =
+            $"Existing tags ({existingTags.Count}):\n{string.Join("\n", existingTags.Select(t => "- " + t))}" +
+            $"\n\nNew name typed by the admin: \"{name}\"";
+
+        var json = await claude.AskForJsonAsync(Helper, Instructions, question, VerdictSchema, maxTokens: 300,
+                                                cancellationToken);
+        if (json is null) return null;
 
         try
         {
-            using var timeout = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
-            timeout.CancelAfter(TimeSpan.FromSeconds(settings.TimeoutSeconds));
-
-            using var message = new HttpRequestMessage(HttpMethod.Post, "v1/messages")
-            {
-                Content = JsonContent.Create(request, options: Json)
-            };
-            message.Headers.Add("x-api-key", settings.ApiKey);
-            message.Headers.Add("anthropic-version", AnthropicVersion);
-
-            using var response = await http.SendAsync(message, timeout.Token);
-            if (!response.IsSuccessStatusCode)
-            {
-                var body = await response.Content.ReadAsStringAsync(timeout.Token);
-                logger.LogWarning("AI tag check failed: {Status} {Body}", (int)response.StatusCode,
-                                  body.Length > 500 ? body[..500] : body);
-                return null;
-            }
-
-            var answer = await response.Content.ReadFromJsonAsync<MessagesResponse>(Json, timeout.Token);
-            if (answer is null || answer.StopReason is "refusal" or "max_tokens")
-            {
-                logger.LogWarning("AI tag check gave no usable answer ({StopReason}).", answer?.StopReason);
-                return null;
-            }
-
-            var text = answer.Content?.FirstOrDefault(c => c.Type == "text")?.Text;
-            if (string.IsNullOrWhiteSpace(text)) return null;
-
-            var verdict = JsonSerializer.Deserialize<Verdict>(text, Json);
+            var verdict = JsonSerializer.Deserialize<Verdict>(json, ClaudeMessages.Json);
             if (verdict is null || string.IsNullOrWhiteSpace(verdict.Name)) return null;
 
             var kind = verdict.Decision?.Trim().ToLowerInvariant() switch
@@ -116,19 +73,12 @@ internal sealed class ClaudeTagAdvisor(HttpClient http, IOptions<AiSettings> opt
             logger.LogInformation("AI tag check: \"{Name}\" → {Verdict} \"{Advised}\"", name, kind, advisedName);
             return new TagAdvice(kind.Value, advisedName, verdict.Reason?.Trim());
         }
-        catch (OperationCanceledException) when (!cancellationToken.IsCancellationRequested)
+        catch (JsonException ex)
         {
-            logger.LogWarning("AI tag check timed out after {Seconds}s.", settings.TimeoutSeconds);
-            return null;
-        }
-        catch (Exception ex) when (ex is HttpRequestException or JsonException or NotSupportedException)
-        {
-            logger.LogWarning(ex, "AI tag check failed.");
+            logger.LogWarning(ex, "AI tag check: the answer couldn't be read.");
             return null;
         }
     }
-
-    // ───────────────────────────── Request and answer shapes ─────────────────────────────
 
     /// <summary>The JSON the model must answer with.</summary>
     private static readonly object VerdictSchema = new
@@ -143,25 +93,6 @@ internal sealed class ClaudeTagAdvisor(HttpClient http, IOptions<AiSettings> opt
         required = new[] { "decision", "name", "reason" },
         additionalProperties = false
     };
-
-    private sealed record MessagesRequest(
-        string Model,
-        [property: JsonPropertyName("max_tokens")] int MaxTokens,
-        string System,
-        IReadOnlyList<Message> Messages,
-        [property: JsonPropertyName("output_config")] OutputConfig OutputConfig);
-
-    private sealed record Message(string Role, string Content);
-
-    private sealed record OutputConfig(OutputFormat Format);
-
-    private sealed record OutputFormat(string Type, object Schema);
-
-    private sealed record MessagesResponse(
-        IReadOnlyList<ContentBlock>? Content,
-        [property: JsonPropertyName("stop_reason")] string? StopReason);
-
-    private sealed record ContentBlock(string Type, string? Text);
 
     private sealed record Verdict(string? Decision, string? Name, string? Reason);
 }
