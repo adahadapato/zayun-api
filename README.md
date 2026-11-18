@@ -46,6 +46,9 @@ Production base address: **`https://api.zayun.net`** · local: **`https://localh
   its kind (Professional, Research, Teaching, Other), title, organisation, place, start and end (no end = current),
   a one-line summary and up to 6 highlights. Ordered by date (current first, then newest); used by the Experience page
   and the CVs.
+- **Education** (`Qualification`, table `Qualifications`): degree, subject, institution, place, year (empty = in
+  progress) and a grade or note. Ordered by year (in progress first, then newest); used by the Experience page and the
+  CVs.
 - **Profiles**: online profiles (ORCID, ResearchGate, Google Scholar, arXiv, LinkedIn, GitHub…), each shown in the
   footer, on Contact and / or on Research, as chosen in the admin area.
 - **Quote of the day**: one quote, proverb or saying per day (UK date), the same for everyone all day. A quote
@@ -182,7 +185,7 @@ Zayun.sln
 ├── Zayun.Domain/
 │   ├── Constants/          AppSettings (all config keys), Roles, Policies
 │   ├── Entities/           ContentEntity, Project, ProjectImage, Publication, PublicationLink, Presentation,
-│   │                       ExperienceArea, CareerRole, SkillGroup, CoreExpertise, ContactMessage, RefreshToken
+│   │                       ExperienceArea, CareerRole, Qualification, SkillGroup, CoreExpertise, ContactMessage, RefreshToken
 │   ├── Enums/              ProjectCategory, ProjectImageKind, PublicationType, PresentationType, ContactTopic, …
 │   ├── Interfaces/         repositories, IFileStorage (+ SaveImageAsync), IImageProcessor, IEmailSender,
 │   │                       ICurrentUser, IAuthService
@@ -350,6 +353,7 @@ dotnet ef database update     --project Zayun.Persistence --startup-project Zayu
 | `Publications` | publications (links as a JSON column) |
 | `Presentations` | presentations (picture columns, all null when there is none) |
 | `ExperienceAreas`, `SkillGroups` | text + skills (JSON column) |
+| `Qualifications` | education: degree, subject, institution, location, year (null = in progress), note |
 | `CareerRoles` | roles: kind (1 Professional, 2 Research, 3 Teaching, 4 Other), title, organisation, location, start / end year and month (end null = current), summary, highlights (JSON column) |
 | `CoreExpertise` | the short list on the Skills page |
 | `Awards` | awards (picture columns, all null when there is none; `IsFeatured` = also on About / Experience) |
@@ -425,6 +429,7 @@ Development). 🛡 = Admin role.
 | GET | `/quotes` | the quote pages: published, checked quotes, pinned / series ones only after their day; most recently shown first (`lastShown`) |
 | GET | `/quotes/{slug}` | one quote's page; 404 for drafts, unchecked quotes, and pinned / series quotes before their day |
 | GET | `/awards` | awards with pictures (`isFeatured` for the About / Experience highlights) |
+| GET | `/education` | published qualifications, in progress first, then newest (`isInProgress` = no year) |
 | GET | `/career-roles` | published roles, current first, then newest (`isCurrent` = no end date) |
 | POST | `/contact/messages` | the Contact form (rate limited) |
 </details>
@@ -440,6 +445,7 @@ Development). 🛡 = Admin role.
 | Publications | GET/POST `/publications`; PUT `/publications/{id}` · `/{id}/published` · `/order`; DELETE `/publications/{id}` |
 | Presentations | GET/POST `/presentations`; PUT `/presentations/{id}` · `/{id}/published` · `/{id}/image` (multipart: `file`, `altText`) · `/order`; DELETE `/presentations/{id}` · `/{id}/image` |
 | Experience | GET/POST `/experience`; PUT `/experience/{id}` · `/{id}/published` · `/order`; DELETE `/experience/{id}` |
+| Education | GET/POST `/education`; PUT `/education/{id}` · `/{id}/published`; DELETE `/education/{id}` (no reorder: ordered by year) |
 | Roles | GET/POST `/career-roles`; PUT `/career-roles/{id}` · `/{id}/published`; DELETE `/career-roles/{id}` (no reorder: ordered by date) |
 | Skills | GET `/skills`; POST `/skills/groups` · `/skills/expertise`; PUT `/skills/groups/{id}` · `/{id}/published` · `/order` (same for `/skills/expertise`); DELETE `/skills/groups/{id}` · `/skills/expertise/{id}` |
 | Awards | GET/POST `/awards`; PUT `/awards/{id}` · `/{id}/published` · `/{id}/image` (multipart: `file`, `altText`) · `/order`; DELETE `/awards/{id}` · `/{id}/image` |

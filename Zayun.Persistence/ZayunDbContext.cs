@@ -40,6 +40,9 @@ public sealed class ZayunDbContext(DbContextOptions<ZayunDbContext> options)
     /// <summary>The "Roles" on the Experience page (table CareerRoles).</summary>
     public DbSet<CareerRole> CareerRoles => Set<CareerRole>();
 
+    /// <summary>The "Education" on the Experience page (table Qualifications).</summary>
+    public DbSet<Qualification> Qualifications => Set<Qualification>();
+
     /// <summary>Skill groups.</summary>
     public DbSet<SkillGroup> SkillGroups => Set<SkillGroup>();
 

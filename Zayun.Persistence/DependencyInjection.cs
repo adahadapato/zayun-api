@@ -120,6 +120,7 @@ public static class DependencyInjection
         services.AddScoped<IPresentationRepository, PresentationRepository>();
         services.AddScoped<IExperienceAreaRepository, ExperienceAreaRepository>();
         services.AddScoped<ICareerRoleRepository, CareerRoleRepository>();
+        services.AddScoped<IQualificationRepository, QualificationRepository>();
         services.AddScoped<ISkillGroupRepository, SkillGroupRepository>();
         services.AddScoped<ICoreExpertiseRepository, CoreExpertiseRepository>();
         services.AddScoped<IAwardRepository, AwardRepository>();

@@ -4,6 +4,7 @@ using Zayun.Presentation.Endpoints.CareerRoles;
 using Zayun.Presentation.Endpoints.Contact;
 using Zayun.Presentation.Endpoints.Dashboard;
 using Zayun.Presentation.Endpoints.Documents;
+using Zayun.Presentation.Endpoints.Education;
 using Zayun.Presentation.Endpoints.Experience;
 using Zayun.Presentation.Endpoints.PersonalDetails;
 using Zayun.Presentation.Endpoints.Presentations;
@@ -34,6 +35,7 @@ public static class EndpointExtensions
         api.MapPresentationEndpoints();      // /api/presentations   + /api/admin/presentations
         api.MapExperienceEndpoints();        // /api/experience      + /api/admin/experience
         api.MapCareerRoleEndpoints();        // /api/career-roles    + /api/admin/career-roles
+        api.MapEducationEndpoints();         // /api/education       + /api/admin/education
         api.MapSkillEndpoints();             // /api/skills          + /api/admin/skills
         api.MapAwardEndpoints();             // /api/awards          + /api/admin/awards
         api.MapTagEndpoints();               //                        /api/admin/tags
