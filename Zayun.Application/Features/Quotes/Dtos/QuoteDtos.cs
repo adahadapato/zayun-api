@@ -180,3 +180,18 @@ public sealed record ArchivedQuoteDto(
 /// <param name="SearchDescription">A description for Google and link previews.</param>
 /// <param name="Themes">Suggested themes (existing ones where they fit).</param>
 public sealed record QuoteSuggestionDto(string SearchDescription, IReadOnlyList<string> Themes);
+
+/// <summary>"Draft a post": ready-to-copy posts for sharing a quote (nothing is saved or posted). The AI wrote only the
+/// intros and hashtags; the quote's words, who said it and the link come from the saved quote.</summary>
+/// <param name="LinkedIn">The LinkedIn post: intro, the quote, who said it, the link, hashtags.</param>
+/// <param name="Short">The short post for WhatsApp or X.</param>
+/// <param name="Hashtags">The hashtags used, without "#".</param>
+/// <param name="Link">The quote's page on the website.</param>
+/// <param name="IsOnWebsite">False while the page isn't on the website yet (a draft, an unchecked quote, or a pinned /
+/// series quote before its day): the link shows "Page not found" until then.</param>
+public sealed record QuotePostDraftDto(
+    string LinkedIn,
+    string Short,
+    IReadOnlyList<string> Hashtags,
+    string Link,
+    bool IsOnWebsite);

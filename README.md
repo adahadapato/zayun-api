@@ -55,6 +55,10 @@ Production base address: **`https://api.zayun.net`** · local: **`https://localh
 - **Quote helper (AI)**: in Admin → Quotes, "Suggest with AI" drafts a quote's Google description and its themes
   (reusing themes other quotes have). Drafts only: the admin edits and saves. Themes link related quotes on the
   website. Uses the same `Ai` settings as the tag check; with AI off, the button says so.
+- **Post drafts (AI)**: in Admin → Quotes, "Draft a post" (saved quotes only) drafts a LinkedIn post and a short post
+  for WhatsApp / X. The AI (`IPostAdvisor` → `ClaudePostAdvisor`) writes only the intros and 3–5 hashtags; the quote's
+  words, who said it and the link are added from the saved quote, so nothing can be reworded. Copy and post by hand;
+  nothing is saved or posted. All AI helpers share one connection (`ClaudeMessages`) and the same `Ai` settings.
 - **Awards**: awards and recognition, with an optional certificate or photo. Featured ones also show on the About
   and Experience pages.
 - **Contact**: the form saves the message to the inbox, emails the owner (Reply goes straight to the visitor) and
@@ -435,7 +439,7 @@ Development). 🛡 = Admin role.
 | Personal details | GET / PUT `/personal-details` (everything, private parts included) |
 | Site pictures | PUT `/site-images/{slot}` (multipart: `file`, `altText`) · `/site-images/{slot}/description` `{ altText }`; DELETE `/site-images/{slot}` |
 | Profiles | GET/POST `/profiles`; PUT `/profiles/{id}` · `/{id}/published` · `/order`; DELETE `/profiles/{id}` |
-| Quotes | POST `/quotes/suggest` (AI drafts of the Google description and themes; saves nothing; 409 when AI is off); GET/POST `/quotes`; GET `/quotes/preview?from=&days=` ("Coming up": the quote for each day and why); PUT `/quotes/{id}` · `/{id}/published` · `/{id}/picture` (multipart: `file`, `altText`) · `/{id}/animation` (multipart: `file`, MP4 up to 8 MB, needs the picture) · `/order`; DELETE `/quotes/{id}` · `/{id}/picture` (and its animation) · `/{id}/animation` |
+| Quotes | POST `/quotes/suggest` (AI drafts of the Google description and themes; saves nothing; 409 when AI is off); POST `/quotes/{id}/post-draft` (AI drafts of a LinkedIn post and a short post for WhatsApp / X; the quote and link exactly as saved; saves and posts nothing; 409 when AI is off); GET/POST `/quotes`; GET `/quotes/preview?from=&days=` ("Coming up": the quote for each day and why); PUT `/quotes/{id}` · `/{id}/published` · `/{id}/picture` (multipart: `file`, `altText`) · `/{id}/animation` (multipart: `file`, MP4 up to 8 MB, needs the picture) · `/order`; DELETE `/quotes/{id}` · `/{id}/picture` (and its animation) · `/{id}/animation` |
 | Tags | GET `/tags`; POST `/tags/check` `{ name }` (Existing / New / Doubtful) · `/tags` `{ name }` · `/tags/{id}/merge` `{ intoTagId }`; PUT `/tags/{id}` `{ name }` (rename everywhere); DELETE `/tags/{id}` (only when unused) |
 | Inbox | GET `/contact-messages?status=&page=&pageSize=` · `/contact-messages/{id}`; PUT `/{id}/status`; DELETE `/{id}` |
 | Documents | GET `/documents?category=` · `/documents/{id}/link` (a 5-minute download link); POST `/documents` (multipart: `file`, `title`, `category`, `notes`); PUT `/documents/{id}` · `/{id}/file` (multipart: `file`); DELETE `/documents/{id}` |

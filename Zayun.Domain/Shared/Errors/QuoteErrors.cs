@@ -20,6 +20,14 @@ public static class QuoteErrors
     public static readonly Error AiNoAnswer = Error.Conflict(
         "Quote.AiNoAnswer", "The AI helper didn't answer this time. Please try again in a moment, or write them yourself.");
 
+    /// <summary>"Draft a post" while the AI is switched off.</summary>
+    public static readonly Error PostAiUnavailable = Error.Conflict(
+        "Quote.PostAiUnavailable", "The AI helper is switched off, so please write the post yourself.");
+
+    /// <summary>"Draft a post": the AI didn't answer in time or gave no usable answer.</summary>
+    public static readonly Error PostAiNoAnswer = Error.Conflict(
+        "Quote.PostAiNoAnswer", "The AI helper didn't answer this time. Please try again in a moment, or write the post yourself.");
+
     /// <summary>Removing a picture that isn't there.</summary>
     public static readonly Error NoPicture = Error.NotFound("Quote.NoPicture", "This quote has no picture to remove.");
 

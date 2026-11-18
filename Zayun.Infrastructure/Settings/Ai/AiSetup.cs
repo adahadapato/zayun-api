@@ -34,11 +34,13 @@ internal static class AiSetup
             // The helpers that use it.
             services.AddTransient<ITagAdvisor, ClaudeTagAdvisor>();
             services.AddTransient<IQuoteAdvisor, ClaudeQuoteAdvisor>();
+            services.AddTransient<IPostAdvisor, ClaudePostAdvisor>();
         }
         else
         {
             services.AddSingleton<ITagAdvisor, NoTagAdvisor>();
             services.AddSingleton<IQuoteAdvisor, NoQuoteAdvisor>();
+            services.AddSingleton<IPostAdvisor, NoPostAdvisor>();
         }
 
         return services;

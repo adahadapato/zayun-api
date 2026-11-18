@@ -96,6 +96,16 @@ public static class QuoteEndpoints
             .ProducesValidationProblem()
             .ProducesProblem(StatusCodes.Status409Conflict);
 
+        admin.MapPost("/{id:guid}/post-draft", async (Guid id, ISender sender, TimeProvider clock,
+                                                       IOptions<ApplicationSettings> settings, CancellationToken ct) =>
+                (await sender.Send(new DraftQuotePostQuery(id, UkCalendar.Today(clock), settings.Value.WebsiteBaseUrl),
+                                   ct)).ToHttp())
+            .WithName("DraftQuotePost")
+            .WithSummary("AI helper: drafts a LinkedIn post and a short post (WhatsApp / X) for a saved quote: intros and hashtags by the AI, the quote and link exactly as saved (saves and posts nothing; 409 when the AI is off or doesn't answer)")
+            .Produces<QuotePostDraftDto>()
+            .ProducesProblem(StatusCodes.Status404NotFound)
+            .ProducesProblem(StatusCodes.Status409Conflict);
+
         admin.MapPost("/", async (CreateQuoteCommand command, ISender sender, CancellationToken ct) =>
                 (await sender.Send(command, ct)).ToHttp())
             .WithName("CreateQuote")
