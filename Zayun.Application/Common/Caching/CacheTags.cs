@@ -20,6 +20,9 @@ public static class CacheTags
     /// <summary>GET /api/experience.</summary>
     public const string Experience = "experience";
 
+    /// <summary>GET /api/career-roles (the "Roles" on the Experience page).</summary>
+    public const string CareerRoles = "career-roles";
+
     /// <summary>GET /api/skills (skill groups and core expertise together).</summary>
     public const string Skills = "skills";
 
