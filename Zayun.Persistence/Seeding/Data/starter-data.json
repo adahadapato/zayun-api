@@ -683,5 +683,133 @@
       "pinnedMonth": 12,
       "pinnedDay": 17
     }
+  ],
+  "careerRoles": [
+    {
+      "kind": "Professional",
+      "title": "Software Developer (Remote)",
+      "organisation": "Various clients",
+      "location": "Remote",
+      "startYear": 2010,
+      "highlights": [
+        "Develop and maintain data-driven software applications and backend systems for client requirements, including HR and payroll solutions.",
+        "Develop and maintain multi-modal biometrics capture and verification systems, with time-and-attendance integration.",
+        "Work across application logic, data management and integration to support reliable business workflows."
+      ]
+    },
+    {
+      "kind": "Professional",
+      "title": "Assistant Director (Programme Analyst) / Systems Analyst & Programmer",
+      "organisation": "National Examinations Council (NECO)",
+      "location": "Nigeria",
+      "startYear": 2006,
+      "endYear": 2024,
+      "highlights": [
+        "Developed and supported large-scale software systems used in national examination operations, with emphasis on data integrity, application reliability and systems integration.",
+        "Contributed to enterprise backend applications, authentication and verification services, and software modernisation.",
+        "Led the Programming Unit, supporting technical coordination and software delivery in a high-volume public-sector environment."
+      ]
+    },
+    {
+      "kind": "Research",
+      "title": "Python Developer / Research Engineer",
+      "organisation": "Brunel University London",
+      "location": "London, United Kingdom",
+      "startYear": 2025,
+      "endYear": 2025,
+      "highlights": [
+        "Translated MATLAB analytical workflows into Python-based scientific software and reproducible data-processing pipelines.",
+        "Developed APIs and research tooling to support computational workflows."
+      ]
+    },
+    {
+      "kind": "Research",
+      "title": "Doctoral Researcher, Medical AI",
+      "organisation": "Brunel University London",
+      "location": "London, United Kingdom",
+      "startYear": 2024,
+      "endYear": 2026,
+      "summary": "Doctoral-level research in medical AI (degree not awarded).",
+      "highlights": [
+        "Developed Med-CTX, a multimodal transformer-based breast imaging research framework, recognised with the ICCVDM 2025 Best Paper Award."
+      ]
+    },
+    {
+      "kind": "Teaching",
+      "title": "Coding Teacher",
+      "organisation": "Electech Lab, St Andrew's CE Primary School",
+      "location": "Uxbridge, London",
+      "startYear": 2026,
+      "endYear": 2026,
+      "highlights": [
+        "Delivered age-appropriate coding lessons introducing programming, computational thinking and problem-solving to primary pupils."
+      ]
+    },
+    {
+      "kind": "Teaching",
+      "title": "Graduate Teaching Assistant",
+      "organisation": "Brunel University London",
+      "location": "London, United Kingdom",
+      "startYear": 2024,
+      "endYear": 2026,
+      "highlights": [
+        "Supported university teaching and student learning, communicating technical concepts in an academic setting."
+      ]
+    },
+    {
+      "kind": "Other",
+      "title": "Bank Support Worker",
+      "organisation": "Penrose Community Care & Support (PCCS)",
+      "location": "London, United Kingdom",
+      "startYear": 2025,
+      "highlights": [
+        "Provide person-centred support to adults with mental health and rehabilitation needs, promoting independence, recovery and wellbeing.",
+        "Work with colleagues and relevant professionals while following safeguarding, confidentiality and record-keeping requirements."
+      ]
+    },
+    {
+      "kind": "Other",
+      "title": "Agency Teaching Assistant / Cover Supervisor",
+      "organisation": "SEND schools",
+      "location": "London, United Kingdom",
+      "startYear": 2025,
+      "highlights": [
+        "Supported pupils with special educational needs and disabilities, including classroom assistance and supervised learning activities."
+      ]
+    },
+    {
+      "kind": "Other",
+      "title": "GCSE Examination Invigilator (part-time, examination periods)",
+      "organisation": "St. Mary & St. John School",
+      "location": "London, United Kingdom",
+      "startYear": 2025,
+      "highlights": [
+        "Supervise GCSE examinations and uphold examination procedures, confidentiality and assessment integrity."
+      ]
+    }
+  ],
+  "education": [
+    {
+      "degree": "M.Tech",
+      "subject": "Computer Science",
+      "institution": "Federal University of Technology, Minna",
+      "location": "Minna, Nigeria",
+      "year": 2023,
+      "note": "Distinction, CGPA 4.48/5.00"
+    },
+    {
+      "degree": "B.Sc.",
+      "subject": "Computer Science",
+      "institution": "University of Uyo",
+      "location": "Uyo, Nigeria",
+      "year": 2004
+    },
+    {
+      "degree": "Diploma",
+      "subject": "Computer Science",
+      "institution": "Lagos City Computer College",
+      "location": "Lagos, Nigeria",
+      "year": 1997
+    }
   ]
 }

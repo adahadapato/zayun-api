@@ -82,7 +82,8 @@ Production base address: **`https://api.zayun.net`** · local: **`https://localh
 On first start the database is filled with **exactly what zayun.net showed before the API** (11 projects,
 2 publications, 3 presentations, 4 experience areas, 5 skill groups, 8 core expertise items, 2 awards, 17 pictures).
 Each block is only filled while its table is empty, so a new block (like Awards) is filled on the next start of an
-existing database too.
+existing database too. **Roles** (9) and **Education** (3) were added this way on 18 Nov 2026, from the owner's CV of
+Nov 2026: to change them later, use the admin area (editing the JSON does nothing once the table has rows).
 
 ---
 

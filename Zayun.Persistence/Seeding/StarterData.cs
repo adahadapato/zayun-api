@@ -17,6 +17,34 @@ internal sealed class StarterData
     public List<StarterProfile> Profiles { get; set; } = [];
     public StarterPersonalDetails? PersonalDetails { get; set; }
     public List<StarterQuote> Quotes { get; set; } = [];
+    public List<StarterCareerRole> CareerRoles { get; set; } = [];
+    public List<StarterQualification> Education { get; set; } = [];
+}
+
+/// <summary>One role ("Roles" on the Experience page). No end year = current.</summary>
+internal sealed class StarterCareerRole
+{
+    public CareerRoleKind Kind { get; set; } = CareerRoleKind.Professional;
+    public string Title { get; set; } = string.Empty;
+    public string Organisation { get; set; } = string.Empty;
+    public string? Location { get; set; }
+    public int StartYear { get; set; }
+    public int? StartMonth { get; set; }
+    public int? EndYear { get; set; }
+    public int? EndMonth { get; set; }
+    public string? Summary { get; set; }
+    public List<string> Highlights { get; set; } = [];
+}
+
+/// <summary>One qualification ("Education" on the Experience page). No year = in progress.</summary>
+internal sealed class StarterQualification
+{
+    public string Degree { get; set; } = string.Empty;
+    public string Subject { get; set; } = string.Empty;
+    public string Institution { get; set; } = string.Empty;
+    public string? Location { get; set; }
+    public int? Year { get; set; }
+    public string? Note { get; set; }
 }
 
 /// <summary>The owner's personal details (only what the website already showed).</summary>

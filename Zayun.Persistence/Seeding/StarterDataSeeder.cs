@@ -13,7 +13,7 @@ namespace Zayun.Persistence.Seeding;
 /// <summary>
 /// Fills an empty database with the website's starter content from <c>starter-data.json</c>: projects (with
 /// pictures), publications, presentations (with pictures), experience areas, skill groups, core expertise, awards,
-/// online profiles and quotes.
+/// online profiles, quotes, roles and education.
 /// </summary>
 /// <remarks>
 /// <para><b>Only when <c>SeedData:StarterDataEnabled</c> is true.</b></para>
@@ -65,6 +65,8 @@ internal static class StarterDataSeeder
         await SeedProfilesAsync(context, data, logger, cancellationToken);
         await SeedPersonalDetailsAsync(context, data, logger, cancellationToken);
         await SeedQuotesAsync(context, data, logger, cancellationToken);
+        await SeedCareerRolesAsync(context, data, logger, cancellationToken);
+        await SeedEducationAsync(context, data, logger, cancellationToken);
     }
 
     // ───────────────────────────── Blocks ─────────────────────────────
@@ -220,6 +222,43 @@ internal static class StarterDataSeeder
 
         await context.SaveChangesAsync(ct);
         logger.LogInformation("Seeded {Count} quotes", data.Quotes.Count);
+    }
+
+    private static async Task SeedCareerRolesAsync(ZayunDbContext context, StarterData data, ILogger logger,
+                                                   CancellationToken ct)
+    {
+        if (data.CareerRoles.Count == 0 || await context.CareerRoles.IgnoreQueryFilters().AnyAsync(ct)) return;
+
+        for (var i = 0; i < data.CareerRoles.Count; i++)
+        {
+            var r = data.CareerRoles[i];
+            context.CareerRoles.Add(Check($"role '{r.Title}'", () => CareerRole.Create(
+                new CareerRoleDetails(r.Kind, r.Title, r.Organisation, r.Location, r.StartYear, r.StartMonth,
+                                      r.EndYear, r.EndMonth, r.Summary, r.Highlights),
+                displayOrder: i,
+                isPublished: true)));
+        }
+
+        await context.SaveChangesAsync(ct);
+        logger.LogInformation("Seeded {Count} roles", data.CareerRoles.Count);
+    }
+
+    private static async Task SeedEducationAsync(ZayunDbContext context, StarterData data, ILogger logger,
+                                                 CancellationToken ct)
+    {
+        if (data.Education.Count == 0 || await context.Qualifications.IgnoreQueryFilters().AnyAsync(ct)) return;
+
+        for (var i = 0; i < data.Education.Count; i++)
+        {
+            var q = data.Education[i];
+            context.Qualifications.Add(Check($"qualification '{q.Degree} {q.Subject}'", () => Qualification.Create(
+                new QualificationDetails(q.Degree, q.Subject, q.Institution, q.Location, q.Year, q.Note),
+                displayOrder: i,
+                isPublished: true)));
+        }
+
+        await context.SaveChangesAsync(ct);
+        logger.LogInformation("Seeded {Count} qualifications", data.Education.Count);
     }
 
     private static async Task SeedPersonalDetailsAsync(ZayunDbContext context, StarterData data, ILogger logger,
